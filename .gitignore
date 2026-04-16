@@ -1,0 +1,12 @@
+/.vscode/
+/.vscode-test/
+/.idea/
+*.iml
+/nbproject/
+/nbbuild/
+/dist/
+/build/
+/out/
+*.log
+.*/
+!.github/

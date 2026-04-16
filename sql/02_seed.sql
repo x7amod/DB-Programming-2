@@ -1,0 +1,2 @@
+-- PURPOSE: Seed data for the website test records.
+-- SECTION: Sample inserts for initial development and testing.

@@ -1,0 +1,2 @@
+-- PURPOSE: Schema definitions for the the website database.
+-- SECTION: Table creation statements with dbProj_ prefixes.

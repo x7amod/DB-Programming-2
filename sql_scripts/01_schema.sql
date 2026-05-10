@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS dbProj_categories;
 CREATE TABLE dbProj_categories (
     id CHAR(36) PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(150),
     -- System Fields
     inactive BOOLEAN DEFAULT FALSE,
     createdon DATETIME DEFAULT CURRENT_TIMESTAMP,

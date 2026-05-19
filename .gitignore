@@ -10,3 +10,4 @@
 *.log
 .*/
 !.github/
+/public/nbproject/private/

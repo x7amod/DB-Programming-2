@@ -316,3 +316,167 @@ button[type=submit]:hover { background: #16213e; }
 
 /* Rating Stars */
 .rating-stars { color: #f0a500; letter-spacing: .05em; font-size: 1rem; }
+
+/* Fatema - Home Page & Search UI */
+
+.hero-section {
+    background: #ffffff;
+    padding: 40px;
+    margin: 30px auto;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 1100px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.hero-section h1 {
+    margin-bottom: 10px;
+    font-size: 36px;
+}
+
+.hero-section p {
+    color: #666;
+    font-size: 18px;
+}
+
+.search-bar {
+    margin-top: 25px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.search-bar input {
+    width: 60%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.search-bar button,
+.advanced-search-form button,
+.btn-view {
+    background: #222;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.movie-section {
+    max-width: 1100px;
+    margin: 30px auto;
+}
+
+.movie-section h2 {
+    margin-bottom: 20px;
+}
+
+.movie-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.movie-card {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+}
+
+.movie-card img {
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+}
+
+.movie-card-body {
+    padding: 18px;
+}
+
+.movie-card-body h3 {
+    margin-bottom: 8px;
+}
+
+.movie-meta,
+.movie-views {
+    color: #777;
+    font-size: 14px;
+}
+
+.btn-view {
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.advanced-search-form {
+    max-width: 1100px;
+    margin: 20px auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.advanced-search-form input,
+.advanced-search-form select {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+@media (max-width: 900px) {
+    .movie-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .advanced-search-form {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .movie-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .search-bar {
+        flex-direction: column;
+    }
+
+    .search-bar input {
+        width: 100%;
+    }
+
+    .advanced-search-form {
+        grid-template-columns: 1fr;
+    }
+}
+.pagination {
+    width: min(1100px, 90%);
+    margin: 30px auto 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.page-link {
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #111827;
+    text-decoration: none;
+    font-weight: 600;
+    border: 1px solid #e5e7eb;
+    transition: 0.25s ease;
+}
+
+.page-link:hover,
+.page-link.active {
+    background: #7c3aed;
+    color: #ffffff;
+    transform: translateY(-2px);
+}

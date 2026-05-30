@@ -1,6 +1,5 @@
 <?php
 // PURPOSE: Movie review and details page.
-<<<<<<< HEAD
 require_once __DIR__ . '/../includes/header.php';
 
 require_once __DIR__ . '/../src/db_helpers.php';
@@ -20,7 +19,6 @@ if (!$movie || (int) $movie['inactive'] === 1 || (int) $movie['is_published'] !=
 }
 
 increment_movie_view_count($pdo, $movieId);
-$movie['view_count'] = (int) $movie['view_count'] + 1;
 
 $comments = get_movie_reviews($pdo, $movieId);
 $currentUser = current_user();
@@ -210,7 +208,3 @@ $image = !empty($movie['image_url'])
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
-=======
-require_once __DIR__ . '/../review.php';
-?>
->>>>>>> 78f088e02ce10ce678ee0907392d0e6352b3bd18

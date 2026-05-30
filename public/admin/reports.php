@@ -5,6 +5,8 @@ require_once __DIR__ . '/../../src/db_helpers.php';
 
 require_role(['Admin']);
 
+$root_url = '/DB-Programming-2/public'; // add app base URL
+
 $today = new DateTimeImmutable('today');
 $defaultStart = $today->modify('-30 days')->format('Y-m-d');
 $defaultEnd = $today->format('Y-m-d');
@@ -42,7 +44,7 @@ foreach ($activeUsers as $userRow) {
 <div class="admin-section reports-page">
     <div class="admin-section-header">
         <h1>Reports</h1>
-        <a href="/admin/index.php">&larr; Back to Dashboard</a>
+        <a href="<?= $root_url ?>/admin/index.php">&larr; Back to Dashboard</a>
     </div>
 
     <section class="report-section">

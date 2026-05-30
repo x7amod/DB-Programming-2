@@ -139,7 +139,7 @@ function get_user_movie_review(PDO $pdo, string $movieId, string $userId): ?arra
     $stmt = $pdo->prepare(
         'SELECT id, movie_id, user_id, rating, comment, inactive, createdon, modifiedon
          FROM dbProj_reviews
-         WHERE movie_id = :movie_id AND user_id = :user_id
+         WHERE movie_id = :movie_id AND user_id = :user_id AND inactive = FALSE
          LIMIT 1'
     );
     $stmt->execute([
@@ -161,7 +161,7 @@ function save_movie_review(PDO $pdo, string $movieId, string $userId, int $ratin
                  inactive = FALSE,
                  modifiedon = NOW(),
                  modifiedby = :by_id
-             WHERE id = :id'
+             WHERE id = :id' 
         );
         $stmt->execute([
             ':rating'  => $rating,

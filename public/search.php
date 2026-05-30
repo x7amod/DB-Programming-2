@@ -198,60 +198,6 @@ $categories = $catStmt->fetchAll();
         <p>No movies found.</p>
     <?php endif; ?>
 </section>
-<<<<<<< HEAD
-
-<script>
-(function () {
-    const input = document.getElementById('live-search-input');
-    const results = document.getElementById('live-search-results');
-
-    if (!input || !results) {
-        return;
-    }
-
-    let timer = null;
-
-    function renderMessage(message, className) {
-        results.innerHTML = '<p class="' + className + '">' + message + '</p>';
-    }
-
-    async function runSearch() {
-        const term = input.value.trim();
-
-        if (term.length < 2) {
-            renderMessage('Type at least 2 characters to see live matches.', 'comment-empty');
-            return;
-        }
-
-        renderMessage('Searching...', 'comment-status comment-status-info');
-
-        try {
-            const response = await fetch('/DB-Programming-2/public/ajax/search_live.php?q=' + encodeURIComponent(term), {
-                headers: {
-                    'Accept': 'text/html'
-                }
-            });
-
-            results.innerHTML = await response.text();
-        } catch (error) {
-            renderMessage('Live search is temporarily unavailable.', 'comment-status comment-status-error');
-        }
-    }
-
-    input.addEventListener('input', function () {
-        clearTimeout(timer);
-        timer = setTimeout(runSearch, 250);
-    });
-
-    if (input.value.trim().length >= 2) {
-        runSearch();
-    }
-}());
-</script>
-
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
-=======
 <?php
 require_once __DIR__ . '/../includes/footer.php';
 ?>
->>>>>>> 78f088e02ce10ce678ee0907392d0e6352b3bd18

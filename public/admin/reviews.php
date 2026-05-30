@@ -5,9 +5,11 @@ require_once __DIR__ . '/../../src/db_helpers.php';
 
 require_role(['Admin', 'Support']);
 
+$root_url = '/DB-Programming-2/public'; // added: app base URL
+
 // Handle POST actions (PRG pattern)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action    = $_POST['action']    ?? '';
+    $action    = $_POST['action'] ?? '';
     $review_id = $_POST['review_id'] ?? '';
     $by_id     = current_user()['id'];
 
@@ -15,7 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         toggle_review_active($pdo, $review_id, $by_id);
         set_flash('success', 'Review status updated.');
     }
-    redirect('/admin/reviews.php');
+
+    if ($action === 'delete_review' && $review_id !== '') {
+        $stmt = $pdo->prepare('DELETE FROM dbProj_reviews WHERE id = ?');
+        $stmt->execute([$review_id]);
+        set_flash('success', 'Review deleted.');
+    }
+
+    redirect($root_url . '/admin/reviews.php'); // changed to use $root_url
 }
 
 $reviews = get_all_reviews_with_details($pdo);
@@ -24,7 +33,7 @@ $reviews = get_all_reviews_with_details($pdo);
 <div class="admin-section">
     <div class="admin-section-header">
         <h1>Manage Reviews</h1>
-        <a href="/admin/index.php">&larr; Back to Dashboard</a>
+        <a href="<?= $root_url ?>/admin/index.php">&larr; Back to Dashboard</a> <!-- changed -->
     </div>
 
     <p><?= count($reviews) ?> review(s) total.</p>
@@ -65,14 +74,12 @@ $reviews = get_all_reviews_with_details($pdo);
                         </td>
                         <td><?= sanitize(substr($r['createdon'], 0, 10)) ?></td>
                         <td class="actions">
-                            <a href="/admin/edit_review.php?id=<?= urlencode($r['id']) ?>" class="btn-edit">Edit</a>
+                            <a href="<?= $root_url ?>/admin/edit_review.php?id=<?= urlencode($r['id']) ?>" class="btn-edit">Edit</a>
                             <form method="POST" style="display:inline;"
-                                  onsubmit="return confirm('Are you sure you want to change this review\'s status?');">
-                                <input type="hidden" name="action"    value="toggle_active">
+                                  onsubmit="return confirm('Permanently delete this review?');">
+                                <input type="hidden" name="action" value="delete_review">
                                 <input type="hidden" name="review_id" value="<?= sanitize($r['id']) ?>">
-                                <button type="submit" class="<?= $r['inactive'] ? 'btn-activate' : 'btn-deactivate' ?>">
-                                    <?= $r['inactive'] ? 'Restore' : 'Remove' ?>
-                                </button>
+                                <button type="submit" class="btn-deactivate">Delete</button>
                             </form>
                         </td>
                     </tr>

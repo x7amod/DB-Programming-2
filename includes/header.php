@@ -13,6 +13,7 @@ $current_user = current_user();
 $flash        = get_flash();
 
 $base_url = '/DB-Programming-2/public';
+$app_url  = '/DB-Programming-2';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -33,12 +34,26 @@ $base_url = '/DB-Programming-2/public';
         <a href="<?= $base_url ?>/search.php">Search</a>
 
         <?php if ($current_user): ?>
+            <a class="nav-action" href="<?= $base_url ?>/user/index.php">Movie Explorer</a>
+
+            <?php if (in_array($current_user['role'], ['Admin', 'Support'], true)): ?>
+                <a class="nav-action" href="<?= $base_url ?>/admin/index.php">
+                    <?= $current_user['role'] === 'Support' ? 'Support Panel' : 'Admin Panel' ?>
+                </a>
+                <a class="nav-action" href="<?= $base_url ?>/admin/reviews.php">Review Queue</a>
+            <?php endif; ?>
+
             <?php if ($current_user['role'] === 'Admin'): ?>
-                <a href="<?= $base_url ?>/admin/index.php">Admin Panel</a>
+                <a class="nav-action" href="<?= $base_url ?>/admin/users.php">Users</a>
             <?php endif; ?>
 
             <?php if ($current_user['role'] === 'Creator'): ?>
-                <a href="<?= $base_url ?>/user/index.php">My Content</a>
+                <a class="nav-action" href="<?= $app_url ?>/creator/index.php">Creator Dashboard</a>
+                <a class="nav-action" href="<?= $app_url ?>/creator/add_review.php">Add Review</a>
+            <?php endif; ?>
+
+            <?php if ($current_user['role'] === 'Viewer'): ?>
+                <a class="nav-action" href="<?= $base_url ?>/search.php">Browse Reviews</a>
             <?php endif; ?>
 
             <span class="nav-user">

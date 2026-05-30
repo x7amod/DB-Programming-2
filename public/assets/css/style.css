@@ -34,6 +34,16 @@ nav {
     transition: color .2s;
 }
 .nav-links a:hover { color: white; }
+.nav-links .nav-action {
+    padding: .35rem .7rem;
+    border: 1px solid rgba(255,255,255,.28);
+    border-radius: 4px;
+    color: #fff;
+    background: rgba(255,255,255,.08);
+}
+.nav-links .nav-action:hover {
+    background: rgba(255,255,255,.16);
+}
 .nav-user {
     color: #aaa;
     font-size: .85rem;
@@ -427,6 +437,61 @@ button[type=submit]:hover { background: #16213e; }
     border-radius: 8px;
 }
 
+/* User Movie Explorer */
+.user-search-header,
+.user-search-panel {
+    max-width: 1100px;
+    margin: 24px auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+}
+
+.user-search-header {
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.user-search-header h1 {
+    margin: 0 0 8px;
+}
+
+.user-search-header p {
+    margin: 0;
+    color: #666;
+}
+
+.user-search-panel {
+    padding: 18px 20px;
+}
+
+.user-search-form {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.user-search-form .form-group {
+    margin-bottom: 0;
+}
+
+.user-search-form .span-2 {
+    grid-column: span 2;
+}
+
+.user-search-actions {
+    display: flex;
+    align-items: end;
+    gap: 10px;
+}
+
+.user-search-actions button {
+    width: 100%;
+}
+
 @media (max-width: 900px) {
     .movie-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -434,6 +499,15 @@ button[type=submit]:hover { background: #16213e; }
 
     .advanced-search-form {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .user-search-form {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .user-search-header {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }
 
@@ -452,6 +526,17 @@ button[type=submit]:hover { background: #16213e; }
 
     .advanced-search-form {
         grid-template-columns: 1fr;
+    }
+
+    .user-search-form,
+    .user-search-form .span-2 {
+        grid-template-columns: 1fr;
+        grid-column: span 1;
+    }
+
+    .user-search-actions {
+        align-items: stretch;
+        flex-direction: column;
     }
 }
 .pagination {

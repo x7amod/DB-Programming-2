@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../includes/header.php';
 require_once __DIR__ . '/../../src/db_helpers.php';
 
 if (is_logged_in()) {
-    redirect('/index.php');
+    redirect('/DB-Programming-2/public/index.php');
 }
 
 $errors = [];
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (create_user($pdo, $new_user)) {
             set_flash('success', 'Account created successfully! Please log in.');
-            redirect('/auth/login.php');
+            redirect('/DB-Programming-2/public/auth/login.php');
         } else {
             $errors['general'] = 'Registration failed. Please try again.';
         }
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="form-container">
     <h1>Create an Account</h1>
-    <p>Already have an account? <a href="/auth/login.php">Log in here</a>.</p>
+    <p>Already have an account? <a href="/DB-Programming-2/public/auth/login.php">Log in here</a>.</p>
 
     <?php if (!empty($errors['general'])): ?>
         <div class="alert alert-error"><?= sanitize($errors['general']) ?></div>

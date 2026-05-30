@@ -5,6 +5,8 @@ require_once __DIR__ . '/../../src/db_helpers.php';
 
 require_role(['Admin']);
 
+$root_url = '/DB-Programming-2/public'; // added app base URL
+
 // Handle POST actions (PRG pattern)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action  = $_POST['action']  ?? '';
@@ -20,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_flash('success', 'User status updated.');
         }
     }
-    redirect('/admin/users.php');
+    redirect($root_url . '/admin/users.php'); // changed to use $root_url
 }
 
 // Filters from GET
@@ -36,7 +38,7 @@ $allowed_roles = ['', 'Viewer', 'Creator', 'Admin', 'Support'];
 <div class="admin-section">
     <div class="admin-section-header">
         <h1>Manage Users</h1>
-        <a href="/admin/index.php">&larr; Back to Dashboard</a>
+        <a href="<?= $root_url ?>/admin/index.php">&larr; Back to Dashboard</a>
     </div>
 
     <!-- Filter Form -->
@@ -57,7 +59,7 @@ $allowed_roles = ['', 'Viewer', 'Creator', 'Admin', 'Support'];
         </select>
 
         <button type="submit">Filter</button>
-        <a href="/admin/users.php" class="btn-link">Clear</a>
+        <a href="<?= $root_url ?>/admin/users.php" class="btn-link">Clear</a>
     </form>
 
     <p><?= count($users) ?> user(s) found.</p>
@@ -93,7 +95,7 @@ $allowed_roles = ['', 'Viewer', 'Creator', 'Admin', 'Support'];
                         </td>
                         <td><?= sanitize(substr($u['createdon'], 0, 10)) ?></td>
                         <td class="actions">
-                            <a href="/admin/edit_user.php?id=<?= urlencode($u['id']) ?>" class="btn-edit">Edit</a>
+                            <a href="<?= $root_url ?>/admin/edit_user.php?id=<?= urlencode($u['id']) ?>" class="btn-edit">Edit</a>
                             <form method="POST" style="display:inline;"
                                   onsubmit="return confirm('Are you sure you want to change this user\'s status?');">
                                 <input type="hidden" name="action"  value="toggle_active">

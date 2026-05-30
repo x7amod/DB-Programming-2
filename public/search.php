@@ -31,11 +31,12 @@ $params = [];
 if ($title !== '') {
     $sql .= " AND (
         MATCH(m.title, m.description) AGAINST(:search_term IN NATURAL LANGUAGE MODE)
-        OR m.title LIKE :title
-        OR m.description LIKE :title
+        OR m.title LIKE :title_like
+        OR m.description LIKE :description_like
     )";
     $params[':search_term'] = $title;
-    $params[':title'] = '%' . $title . '%';
+    $params[':title_like'] = '%' . $title . '%';
+    $params[':description_like'] = '%' . $title . '%';
 }
 if ($startDate !== '') {
     $sql .= " AND DATE(m.createdon) >= :start_date";

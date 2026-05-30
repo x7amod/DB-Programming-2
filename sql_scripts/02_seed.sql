@@ -15,7 +15,7 @@ SET @drama_id = (SELECT id FROM dbProj_categories WHERE name = 'Drama');
 SET @scifi_id = (SELECT id FROM dbProj_categories WHERE name = 'Sci-Fi');
 
 -- 2. Seed Users (Roles: Viewer, Creator, Admin)
--- Passwords are 'password123' (hashed using a generic placeholder for now)
+-- Passwords are 'password' (hashed using a generic placeholder for now)
 INSERT INTO dbProj_users (id, username, email, password_hash, role) VALUES 
 (UUID(), 'admin_user', 'admin@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin'),
 (UUID(), 'creator_ahmed', 'ahmed@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Creator'),

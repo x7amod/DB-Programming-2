@@ -198,6 +198,7 @@ $categories = $catStmt->fetchAll();
         <p>No movies found.</p>
     <?php endif; ?>
 </section>
+<<<<<<< HEAD
 
 <script>
 (function () {
@@ -249,3 +250,8 @@ $categories = $catStmt->fetchAll();
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
+=======
+<?php
+require_once __DIR__ . '/../includes/footer.php';
+?>
+>>>>>>> 78f088e02ce10ce678ee0907392d0e6352b3bd18

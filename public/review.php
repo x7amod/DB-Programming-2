@@ -1,5 +1,6 @@
 <?php
 // PURPOSE: Movie review and details page.
+<<<<<<< HEAD
 require_once __DIR__ . '/../includes/header.php';
 
 require_once __DIR__ . '/../src/db_helpers.php';
@@ -209,3 +210,7 @@ $image = !empty($movie['image_url'])
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
+=======
+require_once __DIR__ . '/../review.php';
+?>
+>>>>>>> 78f088e02ce10ce678ee0907392d0e6352b3bd18

@@ -36,6 +36,7 @@ $user  = current_user();
     <nav class="admin-nav">
         <?php if ($user['role'] === 'Admin'): ?>
             <a href="/admin/users.php">Manage Users</a>
+            <a href="/admin/reports.php">Reports</a>
         <?php endif; ?>
         <a href="/admin/reviews.php">Manage Reviews</a>
     </nav>

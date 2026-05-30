@@ -98,6 +98,176 @@ function get_all_reviews_with_details(PDO $pdo): array {
     return $stmt->fetchAll();
 }
 
+function get_movie_by_id(PDO $pdo, string $id): ?array {
+    $stmt = $pdo->prepare(
+        'SELECT m.*, c.name AS category_name, u.username AS creator_name
+         FROM dbProj_movies m
+         LEFT JOIN dbProj_categories c ON m.category_id = c.id
+         LEFT JOIN dbProj_users u ON m.creator_id = u.id
+         WHERE m.id = ? LIMIT 1'
+    );
+    $stmt->execute([$id]);
+    $movie = $stmt->fetch();
+    return $movie ?: null;
+}
+
+function increment_movie_view_count(PDO $pdo, string $id): void {
+    $stmt = $pdo->prepare(
+        'UPDATE dbProj_movies
+         SET view_count = view_count + 1, modifiedon = NOW()
+         WHERE id = :id AND inactive = FALSE AND is_published = TRUE'
+    );
+    $stmt->execute([':id' => $id]);
+}
+
+function get_movie_reviews(PDO $pdo, string $movieId): array {
+    $stmt = $pdo->prepare(
+        'SELECT r.id, r.rating, r.comment, r.createdon, r.modifiedon, r.inactive,
+                u.username AS reviewer_username
+         FROM dbProj_reviews r
+         JOIN dbProj_users u ON r.user_id = u.id
+         WHERE r.movie_id = :movie_id
+           AND r.inactive = FALSE
+           AND u.inactive = FALSE
+         ORDER BY r.createdon DESC'
+    );
+    $stmt->execute([':movie_id' => $movieId]);
+    return $stmt->fetchAll();
+}
+
+function get_user_movie_review(PDO $pdo, string $movieId, string $userId): ?array {
+    $stmt = $pdo->prepare(
+        'SELECT id, movie_id, user_id, rating, comment, inactive, createdon, modifiedon
+         FROM dbProj_reviews
+         WHERE movie_id = :movie_id AND user_id = :user_id
+         LIMIT 1'
+    );
+    $stmt->execute([
+        ':movie_id' => $movieId,
+        ':user_id'  => $userId,
+    ]);
+    $review = $stmt->fetch();
+    return $review ?: null;
+}
+
+function save_movie_review(PDO $pdo, string $movieId, string $userId, int $rating, string $comment, string $byId): bool {
+    $existing = get_user_movie_review($pdo, $movieId, $userId);
+
+    if ($existing) {
+        $stmt = $pdo->prepare(
+            'UPDATE dbProj_reviews
+             SET rating = :rating,
+                 comment = :comment,
+                 inactive = FALSE,
+                 modifiedon = NOW(),
+                 modifiedby = :by_id
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            ':rating'  => $rating,
+            ':comment' => $comment,
+            ':by_id'   => $byId,
+            ':id'      => $existing['id'],
+        ]);
+        return $stmt->rowCount() >= 0;
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO dbProj_reviews
+            (id, movie_id, user_id, rating, comment, inactive, createdby, modifiedby)
+         VALUES
+            (:id, :movie_id, :user_id, :rating, :comment, FALSE, :createdby, :modifiedby)'
+    );
+    $stmt->execute([
+        ':id'         => generate_uuid(),
+        ':movie_id'   => $movieId,
+        ':user_id'    => $userId,
+        ':rating'     => $rating,
+        ':comment'    => $comment,
+        ':createdby'  => $byId,
+        ':modifiedby' => $byId,
+    ]);
+    return $stmt->rowCount() === 1;
+}
+
+function get_popular_movies_report(PDO $pdo, string $startDate, string $endDate): array {
+    $stmt = $pdo->prepare(
+        'SELECT m.id, m.title, m.createdon, m.view_count,
+                COALESCE(COUNT(r.id), 0) AS review_count,
+                COALESCE(ROUND(AVG(r.rating), 2), 0) AS avg_rating,
+                u.username AS creator_name
+         FROM dbProj_movies m
+         LEFT JOIN dbProj_reviews r ON m.id = r.movie_id AND r.inactive = FALSE
+         LEFT JOIN dbProj_users u ON m.creator_id = u.id
+         WHERE m.inactive = FALSE
+           AND DATE(m.createdon) BETWEEN :start_date AND :end_date
+         GROUP BY m.id, m.title, m.createdon, m.view_count, u.username
+         ORDER BY m.view_count DESC, m.createdon DESC'
+    );
+    $stmt->execute([
+        ':start_date' => $startDate,
+        ':end_date'   => $endDate,
+    ]);
+    return $stmt->fetchAll();
+}
+
+function get_content_by_user_report(PDO $pdo, string $userId): array {
+    $stmt = $pdo->prepare(
+        'SELECT m.id, m.title, m.createdon, m.view_count, m.is_published,
+                c.name AS category_name,
+                u.username AS creator_name
+         FROM dbProj_movies m
+         LEFT JOIN dbProj_categories c ON m.category_id = c.id
+         LEFT JOIN dbProj_users u ON m.creator_id = u.id
+         WHERE m.creator_id = :user_id
+           AND m.inactive = FALSE
+         ORDER BY m.createdon DESC'
+    );
+    $stmt->execute([':user_id' => $userId]);
+    return $stmt->fetchAll();
+}
+
+function get_active_users_for_reports(PDO $pdo): array {
+    $stmt = $pdo->query(
+        "SELECT id, username, role
+         FROM dbProj_users
+         WHERE inactive = FALSE
+         ORDER BY username ASC"
+    );
+    return $stmt->fetchAll();
+}
+
+function search_movies_live(PDO $pdo, string $term, int $limit = 8): array {
+    $term = trim($term);
+    if ($term === '') {
+        return [];
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT m.id, m.title, m.description, m.image_url, m.createdon, m.view_count,
+                c.name AS category_name,
+                u.username AS creator_name
+         FROM dbProj_movies m
+         LEFT JOIN dbProj_categories c ON m.category_id = c.id
+         LEFT JOIN dbProj_users u ON m.creator_id = u.id
+         WHERE m.is_published = TRUE
+           AND m.inactive = FALSE
+           AND (
+                MATCH(m.title, m.description) AGAINST(:search_term IN NATURAL LANGUAGE MODE)
+                OR m.title LIKE :title_like
+                OR m.description LIKE :description_like
+           )
+         ORDER BY m.createdon DESC
+         LIMIT :limit'
+    );
+    $stmt->bindValue(':search_term', $term, PDO::PARAM_STR);
+    $stmt->bindValue(':title_like', '%' . $term . '%', PDO::PARAM_STR);
+    $stmt->bindValue(':description_like', '%' . $term . '%', PDO::PARAM_STR);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
 function get_review_by_id(PDO $pdo, string $id): ?array {
     $stmt = $pdo->prepare(
         'SELECT r.*, m.title AS movie_title, u.username AS reviewer_username

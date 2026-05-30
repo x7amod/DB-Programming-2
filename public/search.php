@@ -31,12 +31,14 @@ $params = [];
 if ($title !== '') {
     $sql .= " AND (
         MATCH(m.title, m.description) AGAINST(:search_term IN NATURAL LANGUAGE MODE)
-        OR m.title LIKE :title
-        OR m.description LIKE :title
+        OR m.title LIKE :title_like
+        OR m.description LIKE :description_like
     )";
     $params[':search_term'] = $title;
-    $params[':title'] = '%' . $title . '%';
+    $params[':title_like'] = '%' . $title . '%';
+    $params[':description_like'] = '%' . $title . '%';
 }
+
 if ($startDate !== '') {
     $sql .= " AND DATE(m.createdon) >= :start_date";
     $params[':start_date'] = $startDate;
@@ -79,6 +81,25 @@ $categories = $catStmt->fetchAll();
 <section class="hero-section">
     <h1>Search Movies</h1>
     <p>Search by title, date range, creator, category, or popularity.</p>
+</section>
+
+<section class="live-search-section">
+    <div class="live-search-panel">
+        <div>
+            <p class="movie-detail-kicker">Live Search</p>
+            <h2>Instant title search</h2>
+        </div>
+        <input
+            id="live-search-input"
+            type="text"
+            value="<?= htmlspecialchars($title) ?>"
+            placeholder="Type a movie title to search instantly"
+            autocomplete="off"
+        >
+    </div>
+    <div id="live-search-results" class="live-search-results">
+        <p class="comment-empty">Type at least 2 characters to see live matches.</p>
+    </div>
 </section>
 
 <section class="search-section">
@@ -140,8 +161,8 @@ $categories = $catStmt->fetchAll();
             <?php foreach ($movies as $movie): ?>
                 <?php
                     $image = !empty($movie['image_url'])
-                     ? $movie['image_url']
-                    : '/DB-Programming-2/public/assets/images/default-movie.jpg';
+                        ? $movie['image_url']
+                        : '/DB-Programming-2/public/assets/images/default-movie.jpg';
 
                     $shortDescription = strlen($movie['description']) > 120
                         ? substr($movie['description'], 0, 120) . '...'
@@ -177,6 +198,54 @@ $categories = $catStmt->fetchAll();
         <p>No movies found.</p>
     <?php endif; ?>
 </section>
-<?php
-require_once __DIR__ . '/../includes/footer.php';
-?>
+
+<script>
+(function () {
+    const input = document.getElementById('live-search-input');
+    const results = document.getElementById('live-search-results');
+
+    if (!input || !results) {
+        return;
+    }
+
+    let timer = null;
+
+    function renderMessage(message, className) {
+        results.innerHTML = '<p class="' + className + '">' + message + '</p>';
+    }
+
+    async function runSearch() {
+        const term = input.value.trim();
+
+        if (term.length < 2) {
+            renderMessage('Type at least 2 characters to see live matches.', 'comment-empty');
+            return;
+        }
+
+        renderMessage('Searching...', 'comment-status comment-status-info');
+
+        try {
+            const response = await fetch('/DB-Programming-2/public/ajax/search_live.php?q=' + encodeURIComponent(term), {
+                headers: {
+                    'Accept': 'text/html'
+                }
+            });
+
+            results.innerHTML = await response.text();
+        } catch (error) {
+            renderMessage('Live search is temporarily unavailable.', 'comment-status comment-status-error');
+        }
+    }
+
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(runSearch, 250);
+    });
+
+    if (input.value.trim().length >= 2) {
+        runSearch();
+    }
+}());
+</script>
+
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

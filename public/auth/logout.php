@@ -11,4 +11,4 @@ if (session_status() === PHP_SESSION_NONE) {
 
 logout_user();
 set_flash('success', 'You have been logged out successfully.');
-redirect('/auth/login.php');
+redirect('/DB-Programming-2/public/auth/login.php');

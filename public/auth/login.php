@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../includes/header.php';
 require_once __DIR__ . '/../../src/db_helpers.php';
 
 if (is_logged_in()) {
-    redirect('/index.php');
+    redirect('/DB-Programming-2/public/index.php');
 }
 
 $errors    = [];
@@ -40,11 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Role-based redirect
             if (in_array($user['role'], ['Admin', 'Support'], true)) {
-                redirect('/admin/index.php');
+                redirect('/DB-Programming-2/public/admin/index.php');
             } elseif ($user['role'] === 'Creator') {
-                redirect('/user/index.php');
+                redirect('/DB-Programming-2/creator/index.php');
             } else {
-                redirect('/index.php');
+                redirect('/DB-Programming-2/public/index.php');
             }
         }
     }
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="form-container">
     <h1>Log In</h1>
-    <p>Don't have an account? <a href="/auth/signup.php">Sign up here</a>.</p>
+    <p>Don't have an account? <a href="/DB-Programming-2/public/auth/signup.php">Sign up here</a>.</p>
 
     <?php if (!empty($errors['general'])): ?>
         <div class="alert alert-error"><?= sanitize($errors['general']) ?></div>

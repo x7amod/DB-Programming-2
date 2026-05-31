@@ -23,19 +23,19 @@ function extract_release_year(string $description): array {
 require_once __DIR__ . '/../includes/header.php';
 ?>
 <style>
-    .portfolio-wrap { color: #f5f1e6; }
+    .portfolio-wrap { color: #111827; max-width: 1100px; margin: 0 auto; }
     .portfolio-header { margin-bottom: 20px; }
     .review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-    .review-card { background: #141414; border-radius: 8px; overflow: hidden; border: 1px solid #242424; }
-    .review-card img, .poster-placeholder { width: 100%; height: 320px; object-fit: cover; display: block; background: #1c1c1c; }
-    .poster-placeholder { display: flex; align-items: center; justify-content: center; color: #888; font-size: 14px; }
+    .review-card { background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+    .review-card img, .poster-placeholder { width: 100%; height: 320px; object-fit: cover; display: block; background: #f3f4f6; }
+    .poster-placeholder { display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 14px; }
     .review-body { padding: 14px; }
     .review-body h3 { margin: 0 0 6px; font-size: 18px; }
-    .review-meta { font-size: 13px; color: #d9c97a; margin-bottom: 8px; }
-    .review-desc { font-size: 13px; color: #d6d6d6; margin-bottom: 12px; }
-    .stars { color: #f1c40f; font-size: 14px; letter-spacing: 1px; }
-    .btn-link { color: #f1c40f; text-decoration: none; font-weight: 700; }
-    .message-box { background: #1f2a38; color: #c0d4f2; padding: 12px; border-radius: 6px; border: 1px solid #2c4a6b; }
+    .review-meta { font-size: 13px; color: #4b5563; margin-bottom: 8px; }
+    .review-desc { font-size: 13px; color: #374151; margin-bottom: 12px; }
+    .stars { color: #d97706; font-size: 14px; letter-spacing: 1px; }
+    .btn-link { color: #1a1a2e; text-decoration: none; font-weight: 700; }
+    .message-box { background: #eef2ff; color: #1e3a8a; padding: 12px; border-radius: 6px; border: 1px solid #c7d2fe; }
 </style>
 
 <div class="portfolio-wrap">

@@ -10,211 +10,145 @@ require_once __DIR__ . '/../includes/auth.php';
 require_role(['Creator']);
 
 $root_url = '/DB-Programming-2';
-$current_year = (int) date('Y');
 $movie_id = trim($_GET['id'] ?? '');
+$error_message = isset($_GET['error']) ? sanitize($_GET['error']) : '';
+$user = current_user();
+$user_id = $user['id'];
 
 if ($movie_id === '') {
     redirect($root_url . '/creator/index.php?msg=invalid');
 }
 
 $stmt = $pdo->prepare(
-    "SELECT m.*, c.name AS category_name
+    "SELECT
+        m.id,
+        m.title,
+        c.name AS category_name,
+        u.username AS uploader_name,
+        r.id AS review_id,
+        r.rating,
+        r.comment
      FROM dbProj_movies m
      LEFT JOIN dbProj_categories c ON m.category_id = c.id
-     WHERE m.id = ? AND m.creator_id = ? AND m.inactive = FALSE"
+     LEFT JOIN dbProj_users u ON m.creator_id = u.id
+     LEFT JOIN dbProj_reviews r
+       ON r.movie_id = m.id AND r.user_id = :user_id AND r.inactive = FALSE
+     WHERE m.id = :movie_id AND m.inactive = FALSE
+     LIMIT 1"
 );
-$stmt->execute([$movie_id, current_user()['id']]);
+$stmt->execute([
+    ':user_id' => $user_id,
+    ':movie_id' => $movie_id
+]);
 $movie = $stmt->fetch();
 
 if (!$movie) {
-    redirect($root_url . '/creator/index.php?msg=unauthorized');
+    redirect($root_url . '/creator/index.php?msg=invalid');
 }
 
-$is_published = (bool) $movie['is_published'];
-$error_message = isset($_GET['error']) ? sanitize($_GET['error']) : '';
-
-function extract_release_year(string $description): array {
-    $year = '';
-    $body = $description;
-    if (preg_match('/^\[Release Year: (\d{4})\]\s*/', $description, $matches)) {
-        $year = $matches[1];
-        $body = preg_replace('/^\[Release Year: \d{4}\]\s*/', '', $description);
-    }
-    return [$year, $body];
+if (empty($movie['review_id'])) {
+    redirect($root_url . '/creator/add_review.php?movie_id=' . urlencode($movie_id));
 }
-
-list($release_year, $clean_description) = extract_release_year($movie['description'] ?? '');
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
 <style>
-    .form-wrap { max-width: 760px; margin: 0 auto; color: #f5f1e6; }
-    .form-wrap h1 { margin-bottom: 10px; }
-    .form-card { background: #141414; padding: 20px; border-radius: 8px; }
-    .form-group { margin-bottom: 16px; }
-    label { display: block; margin-bottom: 6px; font-weight: 600; }
-    input, select, textarea { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #2c2c2c; background: #101010; color: #f5f1e6; }
-    textarea { min-height: 160px; resize: vertical; }
-    .inline-error { color: #f2b6b6; font-size: 13px; margin-top: 4px; }
-    .note { font-size: 12px; color: #b7b7b7; }
-    .char-count { font-size: 12px; color: #d9c97a; text-align: right; }
-    .radio-group { display: flex; gap: 16px; }
-    .btn { padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 700; }
-    .btn-primary { background: #f1c40f; color: #1b1b1b; }
-    .alert-error { background: #3b1b1b; color: #f2b6b6; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #6b2b2b; }
-    .alert-info { background: #1f2a38; color: #c0d4f2; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #2c4a6b; }
-    .thumb { width: 120px; height: auto; border-radius: 6px; border: 1px solid #333; }
-    .disabled-note { opacity: 0.6; }
+    .creator-form-shell { max-width: 760px; margin: 0 auto; }
+    .creator-form-shell h1 { margin: 0 0 8px; color: #1a1a2e; }
+    .creator-form-shell p { margin: 0 0 20px; color: #4b5563; }
+    .creator-form-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+    .meta-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+    .meta-box p { margin: 4px 0; color: #334155; }
+    .inline-error { color: #dc3545; font-size: 13px; margin-top: 4px; }
+    .char-count { font-size: 12px; color: #6b7280; text-align: right; margin-top: 4px; }
+    .rating-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+    .rating-row label { font-weight: 400; }
 </style>
 
-<div class="form-wrap">
+<section class="creator-form-shell">
     <h1>Edit Review</h1>
-    <div class="form-card">
-        <?php if ($is_published): ?>
-            <div class="alert-info">This review has been published and cannot be edited.</div>
-        <?php endif; ?>
+    <p>Update your review for this movie.</p>
 
+    <div class="creator-form-card">
         <?php if ($error_message): ?>
-            <div class="alert-error"><?= $error_message ?></div>
+            <div class="alert alert-error"><?= $error_message ?></div>
         <?php endif; ?>
 
-        <form id="review-form" method="post" action="<?= $root_url ?>/creator/upload_handler.php" enctype="multipart/form-data" data-require-poster="false" class="<?= $is_published ? 'disabled-note' : '' ?>">
-            <input type="hidden" name="action" value="edit">
+        <div class="meta-box">
+            <p><strong>Movie:</strong> <?= sanitize($movie['title']) ?></p>
+            <p><strong>Genre:</strong> <?= sanitize($movie['category_name'] ?? 'Uncategorized') ?></p>
+            <p><strong>Uploaded By:</strong> <?= sanitize($movie['uploader_name'] ?? 'Unknown') ?></p>
+        </div>
+
+        <form id="review-form" method="post" action="<?= $root_url ?>/creator/upload_handler.php">
+            <input type="hidden" name="action" value="edit_review">
             <input type="hidden" name="movie_id" value="<?= sanitize($movie['id']) ?>">
 
             <div class="form-group">
-                <label for="title">Movie Title</label>
-                <input type="text" id="title" name="title" value="<?= sanitize($movie['title']) ?>" <?= $is_published ? 'disabled' : '' ?> required>
-                <div class="inline-error" id="error-title"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="genre">Genre</label>
-                <select id="genre" name="genre" <?= $is_published ? 'disabled' : '' ?> required>
-                    <?php
-                        $genres = ['Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Romance', 'Thriller', 'Animation', 'Documentary', 'Other'];
-                        $current_genre = $movie['category_name'] ?? '';
-                    ?>
-                    <option value="">Select genre</option>
-                    <?php foreach ($genres as $genre): ?>
-                        <option value="<?= $genre ?>" <?= $genre === $current_genre ? 'selected' : '' ?>><?= $genre ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <div class="inline-error" id="error-genre"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="release_year">Release Year</label>
-                <input type="number" id="release_year" name="release_year" min="1888" max="<?= $current_year ?>" value="<?= sanitize((string) $release_year) ?>" <?= $is_published ? 'disabled' : '' ?> required>
-                <div class="note">Enter a 4 digit year between 1888 and <?= $current_year ?>.</div>
-                <div class="inline-error" id="error-year"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="description">Description / Review Body</label>
-                <textarea id="description" name="description" minlength="50" <?= $is_published ? 'disabled' : '' ?> required><?= sanitize($clean_description) ?></textarea>
-                <div class="char-count" id="char-count">0 / 50</div>
-                <div class="inline-error" id="error-description"></div>
-            </div>
-
-            <div class="form-group">
-                <label>Current Poster</label>
-                <?php if (!empty($movie['image_url'])): ?>
-                    <img class="thumb" src="<?= sanitize($movie['image_url']) ?>" alt="Current poster">
-                <?php else: ?>
-                    <div class="note">No poster uploaded yet.</div>
-                <?php endif; ?>
-            </div>
-
-            <div class="form-group">
-                <label for="poster">Replace Poster (optional)</label>
-                <input type="file" id="poster" name="poster" accept=".jpg,.jpeg,.png,.webp" <?= $is_published ? 'disabled' : '' ?>>
-                <div class="inline-error" id="error-poster"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="trailer">Trailer (optional)</label>
-                <input type="file" id="trailer" name="trailer" accept=".mp4,.webm" <?= $is_published ? 'disabled' : '' ?>>
-            </div>
-
-            <div class="form-group">
-                <label>Status</label>
-                <div class="radio-group">
-                    <label><input type="radio" name="status" value="draft" <?= $is_published ? 'disabled' : '' ?> <?= !$is_published ? 'checked' : '' ?>> Save as Draft</label>
-                    <label><input type="radio" name="status" value="published" <?= $is_published ? 'disabled' : '' ?> <?= $is_published ? 'checked' : '' ?>> Publish Now</label>
+                <label>Rating</label>
+                <div class="rating-row">
+                    <?php for ($i = 5; $i >= 1; $i--): ?>
+                        <label>
+                            <input type="radio" name="rating" value="<?= $i ?>" <?= (int) $movie['rating'] === $i ? 'checked' : '' ?>>
+                            <?= $i ?> star<?= $i > 1 ? 's' : '' ?>
+                        </label>
+                    <?php endfor; ?>
                 </div>
+                <div class="inline-error" id="error-rating"></div>
             </div>
 
-            <button class="btn btn-primary" type="submit" <?= $is_published ? 'disabled' : '' ?>>Update Review</button>
+            <div class="form-group">
+                <label for="comment">Review</label>
+                <textarea id="comment" name="comment" minlength="10" rows="7" required><?= sanitize($movie['comment'] ?? '') ?></textarea>
+                <div class="char-count" id="char-count">0 / 2000</div>
+                <div class="inline-error" id="error-comment"></div>
+            </div>
+
+            <button type="submit">Update Review</button>
+            <a class="btn-link" href="<?= $root_url ?>/creator/index.php">Back</a>
         </form>
     </div>
-</div>
+</section>
 
 <script>
+(function () {
     const form = document.getElementById('review-form');
-    const description = document.getElementById('description');
+    if (!form) {
+        return;
+    }
+
+    const comment = document.getElementById('comment');
     const charCount = document.getElementById('char-count');
 
     function updateCharCount() {
-        const count = description.value.trim().length;
-        charCount.textContent = `${count} / 50`;
+        charCount.textContent = `${comment.value.length} / 2000`;
     }
 
-    description.addEventListener('input', updateCharCount);
+    comment.addEventListener('input', updateCharCount);
     updateCharCount();
 
-    form.addEventListener('submit', (event) => {
-        const errors = {
-            title: '',
-            genre: '',
-            year: '',
-            description: '',
-            poster: ''
-        };
+    form.addEventListener('submit', function (event) {
+        const errors = { rating: '', comment: '' };
+        const rating = form.querySelector('input[name="rating"]:checked');
+        const text = comment.value.trim();
 
-        const title = document.getElementById('title').value.trim();
-        const genre = document.getElementById('genre').value.trim();
-        const yearValue = document.getElementById('release_year').value.trim();
-        const posterFile = document.getElementById('poster').files;
-        const requirePoster = form.dataset.requirePoster === 'true';
-
-        if (!title) {
-            errors.title = 'Title is required.';
+        if (!rating) {
+            errors.rating = 'Please choose a rating.';
+        }
+        if (text.length < 10) {
+            errors.comment = 'Review must be at least 10 characters.';
+        } else if (text.length > 2000) {
+            errors.comment = 'Review must be 2000 characters or fewer.';
         }
 
-        if (!genre) {
-            errors.genre = 'Please select a genre.';
-        }
+        document.getElementById('error-rating').textContent = errors.rating;
+        document.getElementById('error-comment').textContent = errors.comment;
 
-        if (yearValue) {
-            const yearNumber = Number(yearValue);
-            if (!Number.isInteger(yearNumber) || yearValue.length !== 4) {
-                errors.year = 'Release year must be a 4 digit number.';
-            } else if (yearNumber < 1888 || yearNumber > <?= $current_year ?>) {
-                errors.year = 'Release year is out of range.';
-            }
-        } else {
-            errors.year = 'Release year is required.';
-        }
-
-        if (description.value.trim().length < 50) {
-            errors.description = 'Description must be at least 50 characters.';
-        }
-
-        if (requirePoster && posterFile.length === 0) {
-            errors.poster = 'Poster image is required.';
-        }
-
-        document.getElementById('error-title').textContent = errors.title;
-        document.getElementById('error-genre').textContent = errors.genre;
-        document.getElementById('error-year').textContent = errors.year;
-        document.getElementById('error-description').textContent = errors.description;
-        document.getElementById('error-poster').textContent = errors.poster;
-
-        if (errors.title || errors.genre || errors.year || errors.description || errors.poster) {
+        if (errors.rating || errors.comment) {
             event.preventDefault();
         }
     });
+}());
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

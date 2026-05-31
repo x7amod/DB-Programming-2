@@ -44,7 +44,6 @@ function handle_upload(array $file, array $allowed_exts, array $allowed_mimes, i
     }
 
     ensure_dir($dest_dir);
-
     $filename = uniqid('media_', true) . '_' . time() . '.' . $extension;
     $target_path = rtrim($dest_dir, '/\\') . DIRECTORY_SEPARATOR . $filename;
 
@@ -68,104 +67,66 @@ function get_or_create_category(PDO $pdo, string $name, string $user_id): ?strin
     }
 
     $new_id = generate_uuid();
-    $insert = $pdo->prepare(
-        'INSERT INTO dbProj_categories (id, name, createdby) VALUES (?, ?, ?)'
-    );
+    $insert = $pdo->prepare('INSERT INTO dbProj_categories (id, name, createdby) VALUES (?, ?, ?)');
     $insert->execute([$new_id, $name, $user_id]);
     return $new_id;
 }
 
-function build_description(string $release_year, string $description): string {
-    return '[Release Year: ' . $release_year . "]\n" . $description;
+function build_description(string $release_year): string {
+    return '[Release Year: ' . $release_year . "]\n";
 }
 
-$action = $_POST['action'] ?? 'add';
-$title = trim($_POST['title'] ?? '');
-$genre = trim($_POST['genre'] ?? '');
-$release_year = trim($_POST['release_year'] ?? '');
-$description = trim($_POST['description'] ?? '');
-$status = ($_POST['status'] ?? 'draft') === 'published' ? 'published' : 'draft';
-$current_year = (int) date('Y');
-
-if ($title === '' || $description === '') {
-    $target = $action === 'edit'
-        ? $root_url . '/creator/edit_review.php?id=' . urlencode($_POST['movie_id'] ?? '')
-        : $root_url . '/creator/add_review.php';
-    redirect_with_error($target, 'Title and description are required.');
-}
-
-if (strlen($description) < 50) {
-    $target = $action === 'edit'
-        ? $root_url . '/creator/edit_review.php?id=' . urlencode($_POST['movie_id'] ?? '')
-        : $root_url . '/creator/add_review.php';
-    redirect_with_error($target, 'Description must be at least 50 characters.');
-}
-
-if ($release_year === '' || !is_numeric($release_year)) {
-    $target = $action === 'edit'
-        ? $root_url . '/creator/edit_review.php?id=' . urlencode($_POST['movie_id'] ?? '')
-        : $root_url . '/creator/add_review.php';
-    redirect_with_error($target, 'Release year is required.');
-}
-
-$release_year_int = (int) $release_year;
-if ($release_year_int < 1888 || $release_year_int > $current_year) {
-    $target = $action === 'edit'
-        ? $root_url . '/creator/edit_review.php?id=' . urlencode($_POST['movie_id'] ?? '')
-        : $root_url . '/creator/add_review.php';
-    redirect_with_error($target, 'Release year is out of range.');
-}
-
-$category_id = get_or_create_category($pdo, $genre, $user_id);
-if ($category_id === null) {
-    $target = $action === 'edit'
-        ? $root_url . '/creator/edit_review.php?id=' . urlencode($_POST['movie_id'] ?? '')
-        : $root_url . '/creator/add_review.php';
-    redirect_with_error($target, 'Genre is required.');
-}
-
-$movie_id = null;
-$image_url = null;
-$media_url = null;
-$existing = null;
-
-if ($action === 'edit') {
-    $movie_id = trim($_POST['movie_id'] ?? '');
-    if ($movie_id === '') {
-        redirect($root_url . '/creator/index.php?msg=invalid');
+function validate_release_year(string $release_year, int $current_year): ?string {
+    if ($release_year === '' || !is_numeric($release_year)) {
+        return 'Release year is required.';
     }
-
-    $stmt = $pdo->prepare(
-        'SELECT id, is_published, image_url, media_url
-         FROM dbProj_movies
-         WHERE id = ? AND creator_id = ? AND inactive = FALSE'
-    );
-    $stmt->execute([$movie_id, $user_id]);
-    $existing = $stmt->fetch();
-
-    if (!$existing) {
-        redirect($root_url . '/creator/index.php?msg=unauthorized');
+    $release_year_int = (int) $release_year;
+    if ($release_year_int < 1888 || $release_year_int > $current_year) {
+        return 'Release year is out of range.';
     }
-
-    if ((bool) $existing['is_published']) {
-        redirect_with_error($root_url . '/creator/edit_review.php?id=' . urlencode($movie_id), 'Published reviews cannot be edited.');
-    }
-
-    $image_url = $existing['image_url'] ?? null;
-    $media_url = $existing['media_url'] ?? null;
-}
-
-$poster_file = $_FILES['poster'] ?? null;
-$trailer_file = $_FILES['trailer'] ?? null;
-
-if ($action === 'add' && (!$poster_file || $poster_file['error'] === UPLOAD_ERR_NO_FILE)) {
-    redirect_with_error($root_url . '/creator/add_review.php', 'Poster image is required.');
+    return null;
 }
 
 $poster_upload_dir = __DIR__ . '/../uploads/posters';
 $trailer_upload_dir = __DIR__ . '/../uploads/media';
+$current_year = (int) date('Y');
 
-if ($poster_file && $poster_file['error'] !== UPLOAD_ERR_NO_FILE) {
+$action = $_POST['action'] ?? '';
+if ($action === 'add') {
+    $action = 'add_movie';
+}
+if ($action === 'edit') {
+    $action = 'edit_review';
+}
+
+$status = ($_POST['status'] ?? 'draft') === 'published' ? 'published' : 'draft';
+$is_published = $status === 'published';
+
+if ($action === 'add_movie') {
+    $title = trim($_POST['title'] ?? '');
+    $genre = trim($_POST['genre'] ?? '');
+    $release_year = trim($_POST['release_year'] ?? '');
+    $poster_file = $_FILES['poster'] ?? null;
+    $trailer_file = $_FILES['trailer'] ?? null;
+
+    if ($title === '') {
+        redirect_with_error($root_url . '/creator/add_movie.php', 'Title is required.');
+    }
+
+    $release_year_error = validate_release_year($release_year, $current_year);
+    if ($release_year_error !== null) {
+        redirect_with_error($root_url . '/creator/add_movie.php', $release_year_error);
+    }
+
+    $category_id = get_or_create_category($pdo, $genre, $user_id);
+    if ($category_id === null) {
+        redirect_with_error($root_url . '/creator/add_movie.php', 'Genre is required.');
+    }
+
+    if (!$poster_file || $poster_file['error'] === UPLOAD_ERR_NO_FILE) {
+        redirect_with_error($root_url . '/creator/add_movie.php', 'Poster image is required.');
+    }
+
     $poster_result = handle_upload(
         $poster_file,
         ['jpg', 'jpeg', 'png', 'webp'],
@@ -173,52 +134,38 @@ if ($poster_file && $poster_file['error'] !== UPLOAD_ERR_NO_FILE) {
         5 * 1024 * 1024,
         $poster_upload_dir
     );
-
     if (!$poster_result['ok']) {
-        $target = $action === 'edit'
-            ? $root_url . '/creator/edit_review.php?id=' . urlencode($movie_id)
-            : $root_url . '/creator/add_review.php';
-        redirect_with_error($target, $poster_result['message']);
+        redirect_with_error($root_url . '/creator/add_movie.php', $poster_result['message']);
     }
 
     $image_url = $root_url . '/uploads/posters/' . $poster_result['filename'];
-}
-
-if ($trailer_file && $trailer_file['error'] !== UPLOAD_ERR_NO_FILE) {
-    $trailer_result = handle_upload(
-        $trailer_file,
-        ['mp4', 'webm'],
-        ['video/mp4', 'video/webm'],
-        50 * 1024 * 1024,
-        $trailer_upload_dir
-    );
-
-    if (!$trailer_result['ok']) {
-        $target = $action === 'edit'
-            ? $root_url . '/creator/edit_review.php?id=' . urlencode($movie_id)
-            : $root_url . '/creator/add_review.php';
-        redirect_with_error($target, $trailer_result['message']);
+    $media_url = null;
+    if ($trailer_file && $trailer_file['error'] !== UPLOAD_ERR_NO_FILE) {
+        $trailer_result = handle_upload(
+            $trailer_file,
+            ['mp4', 'webm'],
+            ['video/mp4', 'video/webm'],
+            50 * 1024 * 1024,
+            $trailer_upload_dir
+        );
+        if (!$trailer_result['ok']) {
+            redirect_with_error($root_url . '/creator/add_movie.php', $trailer_result['message']);
+        }
+        $media_url = $root_url . '/uploads/media/' . $trailer_result['filename'];
     }
 
-    $media_url = $root_url . '/uploads/media/' . $trailer_result['filename'];
-}
-
-$stored_description = build_description($release_year, $description);
-$is_published = $status === 'published';
-
-if ($action === 'add') {
     $new_id = generate_uuid();
+    $description = build_description($release_year);
     $stmt = $pdo->prepare(
         'INSERT INTO dbProj_movies
             (id, title, description, image_url, media_url, category_id, creator_id, is_published, view_count, createdby, modifiedby)
          VALUES
             (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)'
     );
-
     $stmt->execute([
         $new_id,
         $title,
-        $stored_description,
+        $description,
         $image_url,
         $media_url,
         $category_id,
@@ -228,34 +175,78 @@ if ($action === 'add') {
         $user_id
     ]);
 
-    redirect($root_url . '/creator/index.php?msg=saved');
+    redirect($root_url . '/creator/index.php?msg=movie_saved');
 }
 
-$fields = [
-    'title = ?',
-    'description = ?',
-    'category_id = ?',
-    'is_published = ?',
-    'modifiedon = NOW()',
-    'modifiedby = ?'
-];
-$params = [$title, $stored_description, $category_id, $is_published, $user_id];
+if ($action === 'add_review' || $action === 'edit_review') {
+    $movie_id = trim($_POST['movie_id'] ?? '');
+    $rating = (int) ($_POST['rating'] ?? 0);
+    $comment = trim($_POST['comment'] ?? '');
 
-if ($image_url !== null) {
-    $fields[] = 'image_url = ?';
-    $params[] = $image_url;
+    if ($movie_id === '') {
+        redirect_with_error($root_url . '/creator/add_review.php', 'Movie is required.');
+    }
+    if ($rating < 1 || $rating > 5) {
+        $target = $action === 'edit_review'
+            ? $root_url . '/creator/edit_review.php?id=' . urlencode($movie_id)
+            : $root_url . '/creator/add_review.php?movie_id=' . urlencode($movie_id);
+        redirect_with_error($target, 'Rating must be between 1 and 5.');
+    }
+    if (strlen($comment) < 10) {
+        $target = $action === 'edit_review'
+            ? $root_url . '/creator/edit_review.php?id=' . urlencode($movie_id)
+            : $root_url . '/creator/add_review.php?movie_id=' . urlencode($movie_id);
+        redirect_with_error($target, 'Review must be at least 10 characters.');
+    }
+    if (strlen($comment) > 2000) {
+        $target = $action === 'edit_review'
+            ? $root_url . '/creator/edit_review.php?id=' . urlencode($movie_id)
+            : $root_url . '/creator/add_review.php?movie_id=' . urlencode($movie_id);
+        redirect_with_error($target, 'Review must be 2000 characters or fewer.');
+    }
+
+    $movie_stmt = $pdo->prepare('SELECT id FROM dbProj_movies WHERE id = ? AND inactive = FALSE');
+    $movie_stmt->execute([$movie_id]);
+    if (!$movie_stmt->fetch()) {
+        redirect_with_error($root_url . '/creator/add_review.php', 'Movie not found.');
+    }
+
+    $existing_stmt = $pdo->prepare(
+        'SELECT id
+         FROM dbProj_reviews
+         WHERE movie_id = ? AND user_id = ? AND inactive = FALSE
+         LIMIT 1'
+    );
+    $existing_stmt->execute([$movie_id, $user_id]);
+    $existing_review = $existing_stmt->fetch();
+
+    if ($action === 'add_review' && $existing_review) {
+        redirect_with_error($root_url . '/creator/add_review.php', 'You already reviewed this movie.');
+    }
+
+    if ($action === 'edit_review' && !$existing_review) {
+        redirect_with_error($root_url . '/creator/add_review.php?movie_id=' . urlencode($movie_id), 'No existing review found for this movie.');
+    }
+
+    if ($existing_review) {
+        $stmt = $pdo->prepare(
+            'UPDATE dbProj_reviews
+             SET rating = ?, comment = ?, modifiedon = NOW(), modifiedby = ?
+             WHERE id = ?'
+        );
+        $stmt->execute([$rating, $comment, $user_id, $existing_review['id']]);
+    } else {
+        $review_id = generate_uuid();
+        $stmt = $pdo->prepare(
+            'INSERT INTO dbProj_reviews
+                (id, movie_id, user_id, rating, comment, inactive, createdby, modifiedby)
+             VALUES
+                (?, ?, ?, ?, ?, FALSE, ?, ?)'
+        );
+        $stmt->execute([$review_id, $movie_id, $user_id, $rating, $comment, $user_id, $user_id]);
+    }
+
+    redirect($root_url . '/creator/index.php?msg=review_saved');
 }
 
-if ($media_url !== null) {
-    $fields[] = 'media_url = ?';
-    $params[] = $media_url;
-}
-
-$params[] = $movie_id;
-$params[] = $user_id;
-
-$sql = 'UPDATE dbProj_movies SET ' . implode(', ', $fields) . ' WHERE id = ? AND creator_id = ?';
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-
-redirect($root_url . '/creator/index.php?msg=saved');
+redirect($root_url . '/creator/index.php?msg=invalid');

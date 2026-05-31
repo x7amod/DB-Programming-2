@@ -100,7 +100,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 </div>
                                 <div class="stars" aria-label="Average rating"><?= $stars ?></div>
                                 <div class="review-desc"><?= sanitize($excerpt) ?>...</div>
-                                <a class="btn-link" href="<?= $root_url ?>/public/review.php?id=<?= urlencode($review['id']) ?>">Read Review</a>
+                                <a class="btn-link" href="<?= $root_url ?>/review.php?id=<?= urlencode($review['id']) ?>">Read Review</a>
                             </div>
                         </div>
                     <?php endforeach; ?>

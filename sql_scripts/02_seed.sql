@@ -1,7 +1,7 @@
 -- PURPOSE: Seed data for the Movie Review System.
 -- Includes test users, categories, movies, and reviews.
 
-USE movie_review_db;
+-- USE movie_review_db; -- omitted for parser compatibility
 
 -- 1. Seed Categories
 INSERT INTO dbProj_categories (id, name, createdby) VALUES 

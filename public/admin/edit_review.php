@@ -5,18 +5,20 @@ require_once __DIR__ . '/../../src/db_helpers.php';
 
 require_role(['Admin', 'Support']);
 
+$root_url = '/DB-Programming-2/public'; // add app base URL
+
 $review_id = $_GET['id'] ?? ($_POST['review_id'] ?? '');
 
 if ($review_id === '') {
     set_flash('error', 'No review specified.');
-    redirect('/admin/reviews.php');
+    redirect($root_url . '/admin/reviews.php');
 }
 
 $review = get_review_by_id($pdo, $review_id);
 
 if (!$review) {
     set_flash('error', 'Review not found.');
-    redirect('/admin/reviews.php');
+    redirect($root_url . '/admin/reviews.php');
 }
 
 $errors = [];
@@ -34,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         update_review_comment($pdo, $review_id, $comment, $by_id);
         set_flash('success', 'Review updated successfully.');
-        redirect('/admin/reviews.php');
+        redirect($root_url . '/admin/reviews.php');
     }
 
     $review['comment'] = $comment; // re-populate textarea on error
@@ -44,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="form-container form-container-wide">
     <div class="admin-section-header">
         <h1>Edit Review</h1>
-        <a href="/admin/reviews.php">&larr; Back to Reviews</a>
+        <a href="<?= $root_url ?>/admin/reviews.php">&larr; Back to Reviews</a>
     </div>
 
     <div class="review-context">
@@ -76,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <button type="submit">Save Changes</button>
-        <a href="/admin/reviews.php" class="btn-link">Cancel</a>
+        <a href="<?= $root_url ?>/admin/reviews.php" class="btn-link">Cancel</a>
     </form>
 </div>
 

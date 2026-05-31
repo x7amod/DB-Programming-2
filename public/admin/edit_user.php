@@ -5,18 +5,20 @@ require_once __DIR__ . '/../../src/db_helpers.php';
 
 require_role(['Admin']);
 
+$root_url = '/DB-Programming-2/public'; // add app base URL
+
 $user_id = $_GET['id'] ?? ($_POST['user_id'] ?? '');
 
 if ($user_id === '') {
     set_flash('error', 'No user specified.');
-    redirect('/admin/users.php');
+    redirect($root_url . '/admin/users.php');
 }
 
 $target_user = get_user_by_id($pdo, $user_id);
 
 if (!$target_user) {
     set_flash('error', 'User not found.');
-    redirect('/admin/users.php');
+    redirect($root_url . '/admin/users.php');
 }
 
 $allowed_roles = ['Viewer', 'Creator', 'Admin'];
@@ -58,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         update_user($pdo, $user_id, compact('username', 'email', 'role'), $by_id);
         set_flash('success', 'User updated successfully.');
-        redirect('/admin/users.php');
+        redirect($root_url . '/admin/users.php');
     }
 
     // Re-populate from POST if there were errors
@@ -71,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="form-container form-container-wide">
     <div class="admin-section-header">
         <h1>Edit User</h1>
-        <a href="/admin/users.php">&larr; Back to Users</a>
+        <a href="<?= $root_url ?>/admin/users.php">&larr; Back to Users</a>
     </div>
 
     <form method="POST" id="edit-user-form" novalidate>
@@ -120,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <button type="submit">Save Changes</button>
-        <a href="/admin/users.php" class="btn-link">Cancel</a>
+        <a href="<?= $root_url ?>/admin/users.php" class="btn-link">Cancel</a>
     </form>
 </div>
 

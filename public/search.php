@@ -38,6 +38,7 @@ if ($title !== '') {
     $params[':title_like'] = '%' . $title . '%';
     $params[':description_like'] = '%' . $title . '%';
 }
+
 if ($startDate !== '') {
     $sql .= " AND DATE(m.createdon) >= :start_date";
     $params[':start_date'] = $startDate;
@@ -80,6 +81,25 @@ $categories = $catStmt->fetchAll();
 <section class="hero-section">
     <h1>Search Movies</h1>
     <p>Search by title, date range, creator, category, or popularity.</p>
+</section>
+
+<section class="live-search-section">
+    <div class="live-search-panel">
+        <div>
+            <p class="movie-detail-kicker">Live Search</p>
+            <h2>Instant title search</h2>
+        </div>
+        <input
+            id="live-search-input"
+            type="text"
+            value="<?= htmlspecialchars($title) ?>"
+            placeholder="Type a movie title to search instantly"
+            autocomplete="off"
+        >
+    </div>
+    <div id="live-search-results" class="live-search-results">
+        <p class="comment-empty">Type at least 2 characters to see live matches.</p>
+    </div>
 </section>
 
 <section class="search-section">
@@ -141,8 +161,8 @@ $categories = $catStmt->fetchAll();
             <?php foreach ($movies as $movie): ?>
                 <?php
                     $image = !empty($movie['image_url'])
-                     ? $movie['image_url']
-                    : '/DB-Programming-2/public/assets/images/default-movie.jpg';
+                        ? $movie['image_url']
+                        : '/DB-Programming-2/public/assets/images/default-movie.jpg';
 
                     $shortDescription = strlen($movie['description']) > 120
                         ? substr($movie['description'], 0, 120) . '...'

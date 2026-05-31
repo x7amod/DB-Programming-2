@@ -48,6 +48,7 @@ $base_url = '/DB-Programming-2';
 
             <?php if ($current_user['role'] === 'Creator'): ?>
                 <a class="nav-action" href="<?= $base_url ?>/creator/index.php">Creator Dashboard</a>
+                <a class="nav-action" href="<?= $base_url ?>/creator/add_movie.php">Add Movie</a>
                 <a class="nav-action" href="<?= $base_url ?>/creator/add_review.php">Add Review</a>
             <?php endif; ?>
 

@@ -10,166 +10,150 @@ require_once __DIR__ . '/../includes/auth.php';
 require_role(['Creator']);
 
 $root_url = '/DB-Programming-2';
-$current_year = (int) date('Y');
 $error_message = isset($_GET['error']) ? sanitize($_GET['error']) : '';
+$user = current_user();
+$user_id = $user['id'];
+
+$stmt = $pdo->prepare(
+    "SELECT
+        m.id,
+        m.title,
+        c.name AS category_name,
+        u.username AS uploader_name
+     FROM dbProj_movies m
+     LEFT JOIN dbProj_categories c ON m.category_id = c.id
+     LEFT JOIN dbProj_users u ON m.creator_id = u.id
+     LEFT JOIN dbProj_reviews myr
+       ON myr.movie_id = m.id AND myr.user_id = :user_id AND myr.inactive = FALSE
+     WHERE m.inactive = FALSE
+       AND myr.id IS NULL
+     ORDER BY m.createdon DESC"
+);
+$stmt->execute([':user_id' => $user_id]);
+$movies = $stmt->fetchAll();
+
+$selected_movie_id = trim($_GET['movie_id'] ?? '');
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
 <style>
-    .form-wrap { max-width: 760px; margin: 0 auto; color: #f5f1e6; }
-    .form-wrap h1 { margin-bottom: 10px; }
-    .form-card { background: #141414; padding: 20px; border-radius: 8px; }
-    .form-group { margin-bottom: 16px; }
-    label { display: block; margin-bottom: 6px; font-weight: 600; }
-    input, select, textarea { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #2c2c2c; background: #101010; color: #f5f1e6; }
-    textarea { min-height: 160px; resize: vertical; }
-    .inline-error { color: #f2b6b6; font-size: 13px; margin-top: 4px; }
-    .note { font-size: 12px; color: #b7b7b7; }
-    .char-count { font-size: 12px; color: #d9c97a; text-align: right; }
-    .radio-group { display: flex; gap: 16px; }
-    .btn { padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 700; }
-    .btn-primary { background: #f1c40f; color: #1b1b1b; }
-    .alert-error { background: #3b1b1b; color: #f2b6b6; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #6b2b2b; }
+    .creator-form-shell { max-width: 760px; margin: 0 auto; }
+    .creator-form-shell h1 { margin: 0 0 8px; color: #1a1a2e; }
+    .creator-form-shell p { margin: 0 0 20px; color: #4b5563; }
+    .creator-form-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+    .inline-error { color: #dc3545; font-size: 13px; margin-top: 4px; }
+    .char-count { font-size: 12px; color: #6b7280; text-align: right; margin-top: 4px; }
+    .empty-note { background: #eef2ff; border: 1px solid #c7d2fe; color: #1e3a8a; border-radius: 8px; padding: 14px; }
+    .rating-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+    .rating-row label { font-weight: 400; }
 </style>
 
-<div class="form-wrap">
-    <h1>Add New Review</h1>
-    <div class="form-card">
-        <?php if ($error_message): ?>
-            <div class="alert-error"><?= $error_message ?></div>
-        <?php endif; ?>
+<section class="creator-form-shell">
+    <h1>Add Review</h1>
+    <p>Select any movie you have not reviewed yet and submit your rating + review.</p>
 
-        <form id="review-form" method="post" action="<?= $root_url ?>/creator/upload_handler.php" enctype="multipart/form-data" data-require-poster="true">
-            <input type="hidden" name="action" value="add">
+    <?php if (!$movies): ?>
+        <div class="empty-note">
+            No available movies left to review.
+        </div>
+    <?php else: ?>
+        <div class="creator-form-card">
+            <?php if ($error_message): ?>
+                <div class="alert alert-error"><?= $error_message ?></div>
+            <?php endif; ?>
 
-            <div class="form-group">
-                <label for="title">Movie Title</label>
-                <input type="text" id="title" name="title" required>
-                <div class="inline-error" id="error-title"></div>
-            </div>
+            <form id="review-form" method="post" action="<?= $root_url ?>/creator/upload_handler.php">
+                <input type="hidden" name="action" value="add_review">
 
-            <div class="form-group">
-                <label for="genre">Genre</label>
-                <select id="genre" name="genre" required>
-                    <option value="">Select genre</option>
-                    <option>Action</option>
-                    <option>Comedy</option>
-                    <option>Drama</option>
-                    <option>Horror</option>
-                    <option>Sci-Fi</option>
-                    <option>Romance</option>
-                    <option>Thriller</option>
-                    <option>Animation</option>
-                    <option>Documentary</option>
-                    <option>Other</option>
-                </select>
-                <div class="inline-error" id="error-genre"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="release_year">Release Year</label>
-                <input type="number" id="release_year" name="release_year" min="1888" max="<?= $current_year ?>" required>
-                <div class="note">Enter a 4 digit year between 1888 and <?= $current_year ?>.</div>
-                <div class="inline-error" id="error-year"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="description">Description / Review Body</label>
-                <textarea id="description" name="description" minlength="50" required></textarea>
-                <div class="char-count" id="char-count">0 / 50</div>
-                <div class="inline-error" id="error-description"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="poster">Poster Image</label>
-                <input type="file" id="poster" name="poster" accept=".jpg,.jpeg,.png,.webp" required>
-                <div class="inline-error" id="error-poster"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="trailer">Trailer (optional)</label>
-                <input type="file" id="trailer" name="trailer" accept=".mp4,.webm">
-                <div class="inline-error" id="error-trailer"></div>
-            </div>
-
-            <div class="form-group">
-                <label>Status</label>
-                <div class="radio-group">
-                    <label><input type="radio" name="status" value="draft" checked> Save as Draft</label>
-                    <label><input type="radio" name="status" value="published"> Publish Now</label>
+                <div class="form-group">
+                    <label for="movie_id">Movie</label>
+                    <select id="movie_id" name="movie_id" required>
+                        <option value="">Select a movie</option>
+                        <?php foreach ($movies as $movie): ?>
+                            <option
+                                value="<?= sanitize($movie['id']) ?>"
+                                <?= $selected_movie_id === $movie['id'] ? 'selected' : '' ?>
+                            >
+                                <?= sanitize($movie['title']) ?>
+                                <?= !empty($movie['category_name']) ? ' - ' . sanitize($movie['category_name']) : '' ?>
+                                <?= !empty($movie['uploader_name']) ? ' - by ' . sanitize($movie['uploader_name']) : '' ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="inline-error" id="error-movie"></div>
                 </div>
-            </div>
 
-            <button class="btn btn-primary" type="submit">Save Review</button>
-        </form>
-    </div>
-</div>
+                <div class="form-group">
+                    <label>Rating</label>
+                    <div class="rating-row">
+                        <?php for ($i = 5; $i >= 1; $i--): ?>
+                            <label>
+                                <input type="radio" name="rating" value="<?= $i ?>" <?= $i === 5 ? 'checked' : '' ?>>
+                                <?= $i ?> star<?= $i > 1 ? 's' : '' ?>
+                            </label>
+                        <?php endfor; ?>
+                    </div>
+                    <div class="inline-error" id="error-rating"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comment">Review</label>
+                    <textarea id="comment" name="comment" minlength="10" rows="7" required></textarea>
+                    <div class="char-count" id="char-count">0 / 2000</div>
+                    <div class="inline-error" id="error-comment"></div>
+                </div>
+
+                <button type="submit">Submit Review</button>
+                <a class="btn-link" href="<?= $root_url ?>/creator/index.php">Cancel</a>
+            </form>
+        </div>
+    <?php endif; ?>
+</section>
 
 <script>
+(function () {
     const form = document.getElementById('review-form');
-    const description = document.getElementById('description');
+    if (!form) {
+        return;
+    }
+
+    const comment = document.getElementById('comment');
     const charCount = document.getElementById('char-count');
 
     function updateCharCount() {
-        const count = description.value.trim().length;
-        charCount.textContent = `${count} / 50`;
+        charCount.textContent = `${comment.value.length} / 2000`;
     }
 
-    description.addEventListener('input', updateCharCount);
+    comment.addEventListener('input', updateCharCount);
     updateCharCount();
 
-    form.addEventListener('submit', (event) => {
-        const errors = {
-            title: '',
-            genre: '',
-            year: '',
-            description: '',
-            poster: ''
-        };
+    form.addEventListener('submit', function (event) {
+        const errors = { movie: '', rating: '', comment: '' };
+        const movieId = document.getElementById('movie_id').value.trim();
+        const rating = form.querySelector('input[name="rating"]:checked');
+        const text = comment.value.trim();
 
-        const title = document.getElementById('title').value.trim();
-        const genre = document.getElementById('genre').value.trim();
-        const yearValue = document.getElementById('release_year').value.trim();
-        const posterFile = document.getElementById('poster').files;
-        const requirePoster = form.dataset.requirePoster === 'true';
-
-        if (!title) {
-            errors.title = 'Title is required.';
+        if (!movieId) {
+            errors.movie = 'Please select a movie.';
+        }
+        if (!rating) {
+            errors.rating = 'Please choose a rating.';
+        }
+        if (text.length < 10) {
+            errors.comment = 'Review must be at least 10 characters.';
+        } else if (text.length > 2000) {
+            errors.comment = 'Review must be 2000 characters or fewer.';
         }
 
-        if (!genre) {
-            errors.genre = 'Please select a genre.';
-        }
+        document.getElementById('error-movie').textContent = errors.movie;
+        document.getElementById('error-rating').textContent = errors.rating;
+        document.getElementById('error-comment').textContent = errors.comment;
 
-        if (yearValue) {
-            const yearNumber = Number(yearValue);
-            if (!Number.isInteger(yearNumber) || yearValue.length !== 4) {
-                errors.year = 'Release year must be a 4 digit number.';
-            } else if (yearNumber < 1888 || yearNumber > <?= $current_year ?>) {
-                errors.year = 'Release year is out of range.';
-            }
-        } else {
-            errors.year = 'Release year is required.';
-        }
-
-        if (description.value.trim().length < 50) {
-            errors.description = 'Description must be at least 50 characters.';
-        }
-
-        if (requirePoster && posterFile.length === 0) {
-            errors.poster = 'Poster image is required.';
-        }
-
-        document.getElementById('error-title').textContent = errors.title;
-        document.getElementById('error-genre').textContent = errors.genre;
-        document.getElementById('error-year').textContent = errors.year;
-        document.getElementById('error-description').textContent = errors.description;
-        document.getElementById('error-poster').textContent = errors.poster;
-
-        if (errors.title || errors.genre || errors.year || errors.description || errors.poster) {
+        if (errors.movie || errors.rating || errors.comment) {
             event.preventDefault();
         }
     });
+}());
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

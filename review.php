@@ -190,10 +190,18 @@ $image = !empty($movie['image_url'])
 				body: new URLSearchParams(new FormData(form))
 			});
 
-			const payload = await response.json();
+			const responseText = await response.text();
+			let payload;
+			try {
+				payload = JSON.parse(responseText);
+			} catch (parseError) {
+				const preview = responseText.replace(/\s+/g, ' ').slice(0, 180);
+				throw new Error(`Server returned an invalid response: ${preview}`);
+			}
 
 			if (!response.ok || !payload.success) {
-				throw new Error(payload.message || 'Unable to save review.');
+				const errorDetail = payload && payload.error ? ` (${payload.error})` : '';
+				throw new Error((payload.message || 'Unable to save review.') + errorDetail);
 			}
 
 			status.textContent = payload.message || 'Review saved.';

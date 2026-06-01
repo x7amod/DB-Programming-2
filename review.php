@@ -1,233 +1,218 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-require_once __DIR__ . '/config/db.php';
-require_once __DIR__ . '/includes/functions.php';
-require_once __DIR__ . '/includes/auth.php';
-
-$root_url = '/DB-Programming-2';
-$movie_id = trim($_GET['id'] ?? '');
-
-function extract_release_year(string $description): array {
-    $year = '';
-    $body = $description;
-    if (preg_match('/^\[Release Year: (\d{4})\]\s*/', $description, $matches)) {
-        $year = $matches[1];
-        $body = preg_replace('/^\[Release Year: \d{4}\]\s*/', '', $description);
-    }
-    return [$year, $body];
-}
-
+// PURPOSE: Movie review and details page.
 require_once __DIR__ . '/includes/header.php';
+
+require_once __DIR__ . '/includes/db_helpers.php';
+
+$movieId = trim($_GET['id'] ?? ($_POST['movie_id'] ?? ''));
+
+if ($movieId === '') {
+	set_flash('error', 'No movie selected.');
+	redirect('/DB-Programming-2/index.php');
+}
+
+$movie = get_movie_by_id($pdo, $movieId);
+
+if (!$movie || (int) $movie['inactive'] === 1 || (int) $movie['is_published'] !== 1) {
+	set_flash('error', 'Movie not found.');
+	redirect('/DB-Programming-2/index.php');
+}
+
+increment_movie_view_count($pdo, $movieId);
+
+$comments = get_movie_reviews($pdo, $movieId);
+$currentUser = current_user();
+$myReview = $currentUser ? get_user_movie_review($pdo, $movieId, $currentUser['id']) : null;
+
+$ratingTotal = 0;
+foreach ($comments as $commentRow) {
+	$ratingTotal += (int) $commentRow['rating'];
+}
+$commentCount = count($comments);
+$averageRating = $commentCount > 0 ? round($ratingTotal / $commentCount, 1) : 0;
+
+$image = !empty($movie['image_url'])
+	? $movie['image_url']
+	: '/DB-Programming-2/assets/images/default-movie.jpg';
 ?>
-<style>
-    .review-wrap { color: #f5f1e6; }
-    .review-hero { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; margin-bottom: 24px; }
-    .review-hero img { width: 100%; border-radius: 8px; border: 1px solid #2c2c2c; }
-    .review-meta { color: #d9c97a; margin-bottom: 8px; }
-    .review-stats { display: flex; gap: 16px; margin: 10px 0; color: #b7b7b7; font-size: 14px; }
-    .rating-display { display: flex; align-items: center; gap: 8px; }
-    .stars { color: #f1c40f; font-size: 18px; letter-spacing: 1px; }
-    .rating-widget { margin-top: 12px; }
-    .rating-widget .star { cursor: pointer; font-size: 22px; color: #555; }
-    .rating-widget .star.active { color: #f1c40f; }
-    .rating-message { font-size: 13px; color: #d9c97a; margin-top: 6px; }
-    .review-body { background: #141414; padding: 18px; border-radius: 8px; border: 1px solid #242424; }
-    .trailer { margin-top: 20px; }
-    .tooltip { font-size: 12px; color: #f2b6b6; margin-top: 6px; display: none; }
-    @media (max-width: 900px) {
-        .review-hero { grid-template-columns: 1fr; }
-    }
-</style>
 
-<div class="review-wrap">
-<?php if ($movie_id === ''): ?>
-    <div class="review-body">Review not found.</div>
-<?php else: ?>
-    <?php
-        $update_stmt = $pdo->prepare(
-            'UPDATE dbProj_movies SET view_count = view_count + 1 WHERE id = ?'
-        );
-        $update_stmt->execute([$movie_id]);
+<section class="movie-detail-hero">
+	<div class="movie-detail-poster">
+		<img src="<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($movie['title']) ?> poster">
+	</div>
 
-        $stmt = $pdo->prepare(
-            "SELECT m.*, c.name AS category_name, u.username AS creator_name
-             FROM dbProj_movies m
-             LEFT JOIN dbProj_categories c ON m.category_id = c.id
-             LEFT JOIN dbProj_users u ON m.creator_id = u.id
-             WHERE m.id = ? AND m.is_published = TRUE AND m.inactive = FALSE"
-        );
-        $stmt->execute([$movie_id]);
-        $movie = $stmt->fetch();
-    ?>
+	<div class="movie-detail-content">
+		<p class="movie-detail-kicker">Movie Details</p>
+		<h1><?= htmlspecialchars($movie['title']) ?></h1>
+		<p class="movie-meta">
+			<?= htmlspecialchars($movie['category_name'] ?? 'Uncategorized') ?>
+			|
+			By <?= htmlspecialchars($movie['creator_name'] ?? 'Unknown') ?>
+		</p>
 
-    <?php if (!$movie): ?>
-        <div class="review-body">Review not found.</div>
-    <?php else: ?>
-        <?php
-            $rating_stmt = $pdo->prepare(
-                'SELECT AVG(rating) AS avg_rating, COUNT(*) AS total_ratings
-                 FROM dbProj_reviews
-                 WHERE movie_id = ? AND inactive = FALSE'
-            );
-            $rating_stmt->execute([$movie_id]);
-            $rating_stats = $rating_stmt->fetch();
+		<div class="movie-stats">
+			<span><?= htmlspecialchars((string) $movie['view_count']) ?> views</span>
+			<span><?= htmlspecialchars((string) $commentCount) ?> comment(s)</span>
+			<span><?= htmlspecialchars((string) $averageRating) ?>/5 average</span>
+		</div>
 
-            $avg_rating = $rating_stats ? (float) $rating_stats['avg_rating'] : 0.0;
-            $total_ratings = $rating_stats ? (int) $rating_stats['total_ratings'] : 0;
-            $filled = (int) round($avg_rating);
-            $stars = str_repeat('★', $filled) . str_repeat('☆', 5 - $filled);
+		<p class="movie-description"><?= nl2br(htmlspecialchars($movie['description'] ?? '')) ?></p>
+	</div>
+</section>
 
-            list($release_year, $clean_description) = extract_release_year($movie['description'] ?? '');
+<section class="comments-section">
+	<div class="section-heading">
+		<div>
+			<p class="movie-detail-kicker">Comments & Ratings</p>
+			<h2>Viewer feedback</h2>
+		</div>
+		<span class="rating-stars" aria-label="Average rating <?= htmlspecialchars((string) $averageRating) ?> out of 5">
+			<?= str_repeat('★', (int) round($averageRating)) ?><?= str_repeat('☆', 5 - (int) round($averageRating)) ?>
+		</span>
+	</div>
 
-            $user_rating = null;
-            $can_rate = false;
+	<div id="comments-list" class="comments-list">
+		<?php if ($commentCount === 0): ?>
+			<p class="comment-empty">No comments yet. Be the first viewer to leave a rating.</p>
+		<?php else: ?>
+			<?php foreach ($comments as $commentRow): ?>
+				<article class="comment-card">
+					<div class="comment-card-header">
+						<strong><?= htmlspecialchars($commentRow['reviewer_username']) ?></strong>
+						<span class="rating-stars">
+							<?= str_repeat('★', (int) $commentRow['rating']) ?><?= str_repeat('☆', 5 - (int) $commentRow['rating']) ?>
+						</span>
+					</div>
+					<p class="comment-body">
+						<?= htmlspecialchars($commentRow['comment'] !== '' ? $commentRow['comment'] : 'No comment provided.') ?>
+					</p>
+					<small class="comment-date">
+						<?= htmlspecialchars(substr($commentRow['createdon'], 0, 16)) ?>
+					</small>
+				</article>
+			<?php endforeach; ?>
+		<?php endif; ?>
+	</div>
+</section>
 
-            if (is_logged_in()) {
-                $current_user = current_user();
-                if ($current_user && $current_user['role'] !== 'Admin') {
-                    $can_rate = true;
-                    $user_rating_stmt = $pdo->prepare(
-                        'SELECT rating FROM dbProj_reviews WHERE movie_id = ? AND user_id = ? AND inactive = FALSE LIMIT 1'
-                    );
-                    $user_rating_stmt->execute([$movie_id, $current_user['id']]);
-                    $rating = $user_rating_stmt->fetch();
-                    if ($rating) {
-                        $user_rating = (int) $rating['rating'];
-                    }
-                }
-            }
-        ?>
+<section class="comments-section">
+	<div class="section-heading">
+		<div>
+			<p class="movie-detail-kicker">Leave Feedback</p>
+			<h2><?= $currentUser ? 'Add or update your rating' : 'Log in to comment' ?></h2>
+		</div>
+	</div>
 
-        <div class="review-hero">
-            <div>
-                <?php if (!empty($movie['image_url'])): ?>
-                    <img src="<?= sanitize($movie['image_url']) ?>" alt="Poster">
-                <?php else: ?>
-                    <div class="review-body">Poster not available.</div>
-                <?php endif; ?>
-            </div>
-            <div>
-                <h1><?= sanitize($movie['title']) ?></h1>
-                <div class="review-meta">
-                    <?= sanitize($movie['category_name'] ?? 'Uncategorized') ?>
-                    <?php if ($release_year !== ''): ?>
-                        · <?= sanitize($release_year) ?>
-                    <?php endif; ?>
-                </div>
-                <div class="rating-display">
-                    <div class="stars" id="avg-stars" aria-label="Average rating"><?= $stars ?></div>
-                    <div id="avg-score"><?= number_format($avg_rating, 1) ?>/5</div>
-                </div>
-                <div class="review-stats">
-                    <div><span id="rating-count"><?= $total_ratings ?></span> ratings</div>
-                    <div><?= (int) $movie['view_count'] ?> views</div>
-                </div>
-                <div>
-                    Reviewed by
-                    <a href="<?= $root_url ?>/creator/my_reviews.php?user_id=<?= urlencode($movie['creator_id']) ?>">
-                        <?= sanitize($movie['creator_name'] ?? 'Unknown') ?>
-                    </a>
-                </div>
+	<?php if ($currentUser): ?>
+		<form id="comment-form" class="comment-form" method="POST" action="/DB-Programming-2/ajax/submit_comment.php" novalidate>
+			<input type="hidden" name="movie_id" value="<?= htmlspecialchars($movieId) ?>">
 
-                <?php if ($can_rate): ?>
-                    <div class="rating-widget" data-movie-id="<?= sanitize($movie['id']) ?>">
-                        <div id="star-row">
-                            <?php for ($i = 1; $i <= 5; $i++): ?>
-                                <span class="star <?= $user_rating !== null && $i <= $user_rating ? 'active' : '' ?>" data-score="<?= $i ?>">★</span>
-                            <?php endfor; ?>
-                        </div>
-                        <div class="rating-message" id="user-rating-msg">
-                            <?= $user_rating ? 'You rated this ' . $user_rating . '/5' : 'Rate this review' ?>
-                        </div>
-                        <div class="tooltip" id="rating-tooltip">Please log in to rate</div>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
+			<div class="rating-picker">
+				<label>Rating</label>
+				<div class="rating-options">
+					<?php for ($rating = 5; $rating >= 1; $rating--): ?>
+						<label class="rating-option">
+							<input
+								type="radio"
+								name="rating"
+								value="<?= $rating ?>"
+								<?= (int) ($myReview['rating'] ?? 5) === $rating ? 'checked' : '' ?>
+							>
+							<span><?= $rating ?> star<?= $rating > 1 ? 's' : '' ?></span>
+						</label>
+					<?php endfor; ?>
+				</div>
+			</div>
 
-        <div class="review-body">
-            <p><?= nl2br(sanitize($clean_description)) ?></p>
-        </div>
+			<div class="form-group">
+				<label for="comment">Comment</label>
+				<textarea
+					id="comment"
+					name="comment"
+					rows="5"
+					placeholder="Share what you thought about this movie..."
+				><?= htmlspecialchars($myReview['comment'] ?? '') ?></textarea>
+				<small class="char-count"><span id="comment-count">0</span> / 2000 characters</small>
+			</div>
 
-        <?php if (!empty($movie['media_url'])): ?>
-            <div class="trailer">
-                <h2>Trailer</h2>
-                <video controls width="100%">
-                    <source src="<?= sanitize($movie['media_url']) ?>">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-        <?php endif; ?>
+			<div class="comment-form-actions">
+				<button type="submit"><?= $myReview ? 'Update Review' : 'Submit Review' ?></button>
+				<span id="comment-status" class="comment-status" aria-live="polite"></span>
+			</div>
+		</form>
+	<?php else: ?>
+		<p class="comment-empty">
+			You need to <a href="/DB-Programming-2/auth/login.php">log in</a> to add a rating or comment.
+		</p>
+	<?php endif; ?>
+</section>
 
-        <!-- COMMENTS SECTION: built by Member 5, include comments.php here -->
+<script>
+(function () {
+	const form = document.getElementById('comment-form');
+	const textarea = document.getElementById('comment');
+	const counter = document.getElementById('comment-count');
+	const status = document.getElementById('comment-status');
 
-        <?php if ($can_rate): ?>
-            <script>
-                const ratingWidget = document.querySelector('.rating-widget');
-                const starRow = document.getElementById('star-row');
-                const tooltip = document.getElementById('rating-tooltip');
-                const avgStars = document.getElementById('avg-stars');
-                const avgScore = document.getElementById('avg-score');
-                const ratingCount = document.getElementById('rating-count');
-                const userRatingMsg = document.getElementById('user-rating-msg');
+	if (!form || !textarea || !counter || !status) {
+		return;
+	}
 
-                function setStarHighlight(score) {
-                    starRow.querySelectorAll('.star').forEach((star) => {
-                        const starScore = Number(star.dataset.score);
-                        if (starScore <= score) {
-                            star.classList.add('active');
-                        } else {
-                            star.classList.remove('active');
-                        }
-                    });
-                }
+	function updateCount() {
+		counter.textContent = textarea.value.length;
+		counter.style.color = textarea.value.length > 2000 ? '#dc3545' : '';
+	}
 
-                function renderAverageStars(avg) {
-                    const rounded = Math.round(avg);
-                    avgStars.textContent = '★'.repeat(rounded) + '☆'.repeat(5 - rounded);
-                }
+	textarea.addEventListener('input', updateCount);
+	updateCount();
 
-                starRow.addEventListener('click', async (event) => {
-                    const target = event.target;
-                    if (!target.classList.contains('star')) {
-                        return;
-                    }
+	form.addEventListener('submit', async function (event) {
+		event.preventDefault();
 
-                    const score = Number(target.dataset.score);
-                    const movieId = ratingWidget.dataset.movieId;
-                    tooltip.style.display = 'none';
+		const ratingField = form.querySelector('input[name="rating"]:checked');
+		const rating = ratingField ? ratingField.value : '';
 
-                    try {
-                        const response = await fetch('<?= $root_url ?>/ajax/submit_rating.php', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                            body: `movie_id=${encodeURIComponent(movieId)}&score=${score}`
-                        });
+		if (!rating) {
+			status.textContent = 'Please choose a rating.';
+			status.className = 'comment-status comment-status-error';
+			return;
+		}
 
-                        const result = await response.json();
-                        if (!result.success) {
-                            tooltip.textContent = result.message || 'Please log in to rate';
-                            tooltip.style.display = 'block';
-                            return;
-                        }
+		status.textContent = 'Saving your review...';
+		status.className = 'comment-status comment-status-info';
 
-                        setStarHighlight(score);
-                        renderAverageStars(result.new_avg);
-                        avgScore.textContent = `${result.new_avg.toFixed(1)}/5`;
-                        ratingCount.textContent = result.total_ratings;
-                        userRatingMsg.textContent = `You rated this ${score}/5`;
-                    } catch (error) {
-                        tooltip.textContent = 'Could not submit rating.';
-                        tooltip.style.display = 'block';
-                    }
-                });
-            </script>
-        <?php endif; ?>
-    <?php endif; ?>
-<?php endif; ?>
-</div>
+		try {
+			const response = await fetch(form.action, {
+				method: 'POST',
+				headers: {
+					'Accept': 'application/json'
+				},
+				body: new URLSearchParams(new FormData(form))
+			});
+
+			const responseText = await response.text();
+			let payload;
+			try {
+				payload = JSON.parse(responseText);
+			} catch (parseError) {
+				const preview = responseText.replace(/\s+/g, ' ').slice(0, 180);
+				throw new Error(`Server returned an invalid response: ${preview}`);
+			}
+
+			if (!response.ok || !payload.success) {
+				const errorDetail = payload && payload.error ? ` (${payload.error})` : '';
+				throw new Error((payload.message || 'Unable to save review.') + errorDetail);
+			}
+
+			status.textContent = payload.message || 'Review saved.';
+			status.className = 'comment-status comment-status-success';
+			window.location.reload();
+		} catch (error) {
+			status.textContent = error.message;
+			status.className = 'comment-status comment-status-error';
+		}
+	});
+}());
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

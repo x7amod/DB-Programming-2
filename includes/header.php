@@ -12,8 +12,7 @@ require_once __DIR__ . '/auth.php';
 $current_user = current_user();
 $flash        = get_flash();
 
-$base_url = '/DB-Programming-2/public';
-$app_url  = '/DB-Programming-2';
+$base_url = '/DB-Programming-2';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,6 +20,7 @@ $app_url  = '/DB-Programming-2';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Review System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= $base_url ?>/assets/css/style.css">
 </head>
 <body>
@@ -34,22 +34,23 @@ $app_url  = '/DB-Programming-2';
         <a href="<?= $base_url ?>/search.php">Search</a>
 
         <?php if ($current_user): ?>
-            <a class="nav-action" href="<?= $base_url ?>/user/index.php">Movie Explorer</a>
+                <a class="nav-action" href="<?= $base_url ?>/auth/user_index.php">Movie Explorer</a>
 
             <?php if (in_array($current_user['role'], ['Admin', 'Support'], true)): ?>
                 <a class="nav-action" href="<?= $base_url ?>/admin/index.php">
                     <?= $current_user['role'] === 'Support' ? 'Support Panel' : 'Admin Panel' ?>
                 </a>
-                <a class="nav-action" href="<?= $base_url ?>/admin/reviews.php">Review Queue</a>
+                <a class="nav-action" href="<?= $base_url ?>/admin/manage_content.php">Review Queue</a>
             <?php endif; ?>
 
             <?php if ($current_user['role'] === 'Admin'): ?>
-                <a class="nav-action" href="<?= $base_url ?>/admin/users.php">Users</a>
+                <a class="nav-action" href="<?= $base_url ?>/admin/manage_users.php">Users</a>
             <?php endif; ?>
 
             <?php if ($current_user['role'] === 'Creator'): ?>
-                <a class="nav-action" href="<?= $app_url ?>/creator/index.php">Creator Dashboard</a>
-                <a class="nav-action" href="<?= $app_url ?>/creator/add_review.php">Add Review</a>
+                <a class="nav-action" href="<?= $base_url ?>/creator/index.php">Creator Dashboard</a>
+                <a class="nav-action" href="<?= $base_url ?>/creator/add_movie.php">Add Movie</a>
+                <a class="nav-action" href="<?= $base_url ?>/creator/add_review.php">Add Review</a>
             <?php endif; ?>
 
             <?php if ($current_user['role'] === 'Viewer'): ?>

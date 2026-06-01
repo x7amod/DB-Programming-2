@@ -301,6 +301,16 @@ function toggle_review_active(PDO $pdo, string $id, string $by_id): bool {
     return $stmt->rowCount() === 1;
 }
 
+function set_review_inactive(PDO $pdo, string $id, string $by_id): bool {
+    $stmt = $pdo->prepare(
+        'UPDATE dbProj_reviews
+         SET inactive = TRUE, modifiedon = NOW(), modifiedby = :by_id
+         WHERE id = :id'
+    );
+    $stmt->execute([':by_id' => $by_id, ':id' => $id]);
+    return $stmt->rowCount() === 1;
+}
+
 function get_stats(PDO $pdo): array {
     $users = $pdo->query('SELECT COUNT(*) FROM dbProj_users WHERE inactive = 0')->fetchColumn();
     $movies = $pdo->query('SELECT COUNT(*) FROM dbProj_movies WHERE inactive = 0')->fetchColumn();

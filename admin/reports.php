@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/db_helpers.php';
 
 require_role(['Admin']);
 
-$root_url = '/DB-Programming-2'; // add app base URL
+$root_url = '/~u202302211/DB-Programming-2'; 
 
 $today = new DateTimeImmutable('today');
 $defaultStart = $today->modify('-30 days')->format('Y-m-d');

@@ -11,7 +11,7 @@ require_login();
 
 require_once __DIR__ . '/../includes/header.php';
 
-$root_url = '/DB-Programming-2';
+$root_url = '/~u202302211/DB-Programming-2';
 $current_user = current_user();
 
 function selected_attr(string $value, string $current): string {
@@ -179,8 +179,12 @@ if ($sort === 'popular') {
 } elseif ($sort === 'newest' || !$has_text_search || $field !== 'all') {
     $sql .= ' ORDER BY m.createdon DESC';
 } else {
-    $sql .= ' ORDER BY MATCH(m.title, m.description) AGAINST(:boolean_query_order IN BOOLEAN MODE) DESC, m.createdon DESC';
-    $params[':boolean_query_order'] = $boolean_query;
+    if ($has_text_search) {
+        $sql .= ' ORDER BY MATCH(m.title, m.description) AGAINST(:boolean_query_order IN BOOLEAN MODE) DESC, m.createdon DESC';
+        $params[':boolean_query_order'] = $boolean_query;
+    } else {
+        $sql .= ' ORDER BY m.createdon DESC';
+    }
 }
 
 $stmt = $pdo->prepare($sql);
@@ -313,8 +317,8 @@ $categories = $cat_stmt->fetchAll();
             <?php foreach ($movies as $movie): ?>
                 <?php
                     $image = !empty($movie['image_url'])
-                        ? $movie['image_url']
-                        : '/DB-Programming-2/assets/images/default-movie.jpg';
+                        ? '/~u202302211' . $movie['image_url']
+                        : '/~u202302211/DB-Programming-2/assets/images/default-movie.jpg';
                     [$release_year, $clean_description] = clean_year_from_description($movie['description'] ?? '');
                     $short_description = strlen($clean_description) > 130
                         ? substr($clean_description, 0, 130) . '...'

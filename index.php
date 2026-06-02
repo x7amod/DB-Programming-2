@@ -69,8 +69,8 @@ $movies = $stmt->fetchAll();
                 <?php foreach ($movies as $movie): ?>
                     <?php
                         $image = !empty($movie['image_url'])
-                            ? $movie['image_url']
-                            : '/DB-Programming-2/assets/images/default-movie.jpg';
+                            ? '/~u202302211' . $movie['image_url']
+                            : '/~u202302211/DB-Programming-2/assets/images/default-movie.jpg';
 
                         $shortDescription = strlen($movie['description']) > 120
                             ? substr($movie['description'], 0, 120) . '...'
@@ -95,7 +95,7 @@ $movies = $stmt->fetchAll();
                                 Views: <?= htmlspecialchars($movie['view_count']) ?>
                             </p>
 
-                            <a class="btn-view" href="/DB-Programming-2/review.php?id=<?= urlencode($movie['id']) ?>">
+                            <a class="btn-view" href="/~u202302211/DB-Programming-2/review.php?id=<?= urlencode($movie['id']) ?>">
                                 View More
                             </a>
                         </div>
@@ -178,7 +178,7 @@ $movies = $stmt->fetchAll();
         try {
             setLoadingState();
 
-            const response = await fetch(`/DB-Programming-2/ajax/search_live.php?title=${encodeURIComponent(query)}`, {
+            const response = await fetch(`/~u202302211/DB-Programming-2/ajax/search_live.php?title=${encodeURIComponent(query)}`, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 },

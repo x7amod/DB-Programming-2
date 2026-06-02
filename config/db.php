@@ -2,13 +2,13 @@
 // PURPOSE: Database connection configuration for the website.
 // Using PDO for secure, prepared statements.
 
-$host = 'localhost';
-$db   = 'movie_review_db';
-$user = 'root';
-$pass = '';
+$host = "localhost";
+$dbname = "db202302211";
+$user = "u202302211";
+$pass = "asdASD123!";
 $charset = 'utf8mb4';
 
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+$dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
 $options = [
      PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -17,6 +17,7 @@ $options = [
 
 try {
      $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (\PDOException $e) {
-     throw new \PDOException($e->getMessage(), (int)$e->getCode());
+} catch (PDOException $e) {
+    echo "DB ERROR: " . $e->getMessage();
+    exit;
 }

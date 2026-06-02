@@ -9,7 +9,7 @@ require_once __DIR__ . '/../includes/auth.php';
 
 require_role(['Creator']);
 
-$root_url = '/DB-Programming-2';
+$root_url = '/~u202302211/DB-Programming-2';
 $current_user = current_user();
 $user_id = $current_user['id'];
 

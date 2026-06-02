@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/db_helpers.php';
 
 require_role(['Admin']);
 
-$root_url = '/DB-Programming-2'; // added app base URL
+$root_url = '/~u202302211/DB-Programming-2'; // added app base URL
 
 // Handle POST actions (PRG pattern)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

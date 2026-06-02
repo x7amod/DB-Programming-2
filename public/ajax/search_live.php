@@ -24,8 +24,8 @@ if (count($results) === 0) {
 
 foreach ($results as $movie):
     $image = !empty($movie['image_url'])
-        ? $movie['image_url']
-        : '/DB-Programming-2/public/assets/images/default-movie.jpg';
+        ? '/~u202302211' . $movie['image_url']
+        : '/~u202302211/DB-Programming-2/public/assets/images/default-movie.jpg';
     $shortDescription = strlen($movie['description'] ?? '') > 140
         ? substr($movie['description'], 0, 140) . '...'
         : ($movie['description'] ?? '');
@@ -41,7 +41,7 @@ foreach ($results as $movie):
             </p>
             <p><?= htmlspecialchars($shortDescription) ?></p>
             <p class="movie-views">Views: <?= htmlspecialchars((string) $movie['view_count']) ?></p>
-            <a class="btn-view" href="/DB-Programming-2/public/review.php?id=<?= urlencode($movie['id']) ?>">View More</a>
+            <a class="btn-view" href="/~u202302211/DB-Programming-2/public/review.php?id=<?= urlencode($movie['id']) ?>">View More</a>
         </div>
     </article>
 <?php endforeach; ?>

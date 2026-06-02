@@ -40,7 +40,7 @@ function logout_user(): void {
 function require_login(): void {
     if (!is_logged_in()) {
         set_flash('error', 'You must be logged in to access that page.');
-        redirect('/DB-Programming-2/auth/login.php');
+        redirect('/~u202302211/DB-Programming-2/auth/login.php');
     }
 }
 

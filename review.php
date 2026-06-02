@@ -8,14 +8,14 @@ $movieId = trim($_GET['id'] ?? ($_POST['movie_id'] ?? ''));
 
 if ($movieId === '') {
 	set_flash('error', 'No movie selected.');
-	redirect('/DB-Programming-2/index.php');
+	redirect('/~u202302211/DB-Programming-2/index.php');
 }
 
 $movie = get_movie_by_id($pdo, $movieId);
 
 if (!$movie || (int) $movie['inactive'] === 1 || (int) $movie['is_published'] !== 1) {
 	set_flash('error', 'Movie not found.');
-	redirect('/DB-Programming-2/index.php');
+	redirect('/~u202302211/DB-Programming-2/index.php');
 }
 
 increment_movie_view_count($pdo, $movieId);
@@ -32,8 +32,8 @@ $commentCount = count($comments);
 $averageRating = $commentCount > 0 ? round($ratingTotal / $commentCount, 1) : 0;
 
 $image = !empty($movie['image_url'])
-	? $movie['image_url']
-	: '/DB-Programming-2/assets/images/default-movie.jpg';
+	? '/~u202302211' . $movie['image_url']
+	: '/~u202302211/DB-Programming-2/assets/images/default-movie.jpg';
 ?>
 
 <section class="movie-detail-hero">
@@ -104,7 +104,7 @@ $image = !empty($movie['image_url'])
 	</div>
 
 	<?php if ($currentUser): ?>
-		<form id="comment-form" class="comment-form" method="POST" action="/DB-Programming-2/ajax/submit_comment.php" novalidate>
+		<form id="comment-form" class="comment-form" method="POST" action="/~u202302211/DB-Programming-2/ajax/submit_comment.php" novalidate>
 			<input type="hidden" name="movie_id" value="<?= htmlspecialchars($movieId) ?>">
 
 			<div class="rating-picker">
@@ -143,7 +143,7 @@ $image = !empty($movie['image_url'])
 		</form>
 	<?php else: ?>
 		<p class="comment-empty">
-			You need to <a href="/DB-Programming-2/auth/login.php">log in</a> to add a rating or comment.
+			You need to <a href="/~u202302211/DB-Programming-2/auth/login.php">log in</a> to add a rating or comment.
 		</p>
 	<?php endif; ?>
 </section>

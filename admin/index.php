@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/db_helpers.php';
 
 require_role(['Admin', 'Support']);
 
-$root_url = '/DB-Programming-2';
+$root_url = '/~u202302211/DB-Programming-2';
 
 $stats = get_stats($pdo);
 $user  = current_user();
@@ -35,13 +35,13 @@ $user  = current_user();
     </div>
 
     <h2>Management</h2>
-    <nav class="admin-nav">
-        <?php if ($user['role'] === 'Admin'): ?>
-            <a href="<?= $root_url ?>/admin/manage_movies.php">Manage Movies</a>
-            <a href="<?= $root_url ?>/admin/manage_users.php">Manage Users</a>
-            <a href="<?= $root_url ?>/admin/reports.php">Reports</a>
-        <?php endif; ?>
-        <a href="<?= $root_url ?>/admin/manage_content.php">Manage Reviews</a>
-    </nav>
+   <nav class="admin-nav">
+    <?php if ($user['role'] === 'Admin'): ?>
+        <a href="<?= $root_url ?>/admin/manage_movies.php">Manage Movies</a>
+        <a href="<?= $root_url ?>/admin/manage_users.php">Manage Users</a>
+        <a href="<?= $root_url ?>/admin/reports.php">Reports</a>
+    <?php endif; ?>
+    <a href="<?= $root_url ?>/admin/manage_content.php">Manage Reviews</a>
+</nav>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

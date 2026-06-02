@@ -48,7 +48,7 @@ $categories = $catStmt->fetchAll();
         <h2>Refine your results</h2>
         <p>Filter by date range, creator, category, or sort by popularity.</p>
 
-        <form id="search-form" method="GET" action="/DB-Programming-2/search.php" class="advanced-search-form">
+        <form id="search-form" method="GET" action="/~u202302211/DB-Programming-2/search.php" class="advanced-search-form">
             <input 
                 id="live-search-input"
                 type="text" 
@@ -109,8 +109,8 @@ $categories = $catStmt->fetchAll();
                 <?php foreach ($movies as $movie): ?>
                     <?php
                         $image = !empty($movie['image_url'])
-                            ? $movie['image_url']
-                            : '/DB-Programming-2/assets/images/default-movie.jpg';
+                            ? '/~u202302211' . $movie['image_url']
+                            : '/~u202302211/DB-Programming-2/assets/images/default-movie.jpg';
 
                         $shortDescription = strlen($movie['description']) > 120
                             ? substr($movie['description'], 0, 120) . '...'
@@ -135,7 +135,7 @@ $categories = $catStmt->fetchAll();
                                 Views: <?= htmlspecialchars($movie['view_count']) ?>
                             </p>
 
-                            <a class="btn-view" href="/DB-Programming-2/review.php?id=<?= urlencode($movie['id']) ?>">
+                            <a class="btn-view" href="/~u202302211/DB-Programming-2/review.php?id=<?= urlencode($movie['id']) ?>">
                                 View More
                             </a>
                         </div>
@@ -189,7 +189,7 @@ $categories = $catStmt->fetchAll();
         try {
             setLoadingState();
 
-            const response = await fetch(`/DB-Programming-2/ajax/search_live.php?${searchParams.toString()}`, {
+            const response = await fetch(`/~u202302211/DB-Programming-2/ajax/search_live.php?${searchParams.toString()}`, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 },

@@ -72,24 +72,8 @@ function get_or_create_category(PDO $pdo, string $name, string $user_id): ?strin
     return $new_id;
 }
 
-function build_description(string $release_year): string {
-    return '[Release Year: ' . $release_year . "]\n";
-}
-
-function validate_release_year(string $release_year, int $current_year): ?string {
-    if ($release_year === '' || !is_numeric($release_year)) {
-        return 'Release year is required.';
-    }
-    $release_year_int = (int) $release_year;
-    if ($release_year_int < 1888 || $release_year_int > $current_year) {
-        return 'Release year is out of range.';
-    }
-    return null;
-}
-
 $poster_upload_dir = __DIR__ . '/../uploads/posters';
 $trailer_upload_dir = __DIR__ . '/../uploads/media';
-$current_year = (int) date('Y');
 
 $action = $_POST['action'] ?? '';
 if ($action === 'add') {
@@ -104,8 +88,8 @@ $is_published = $status === 'published';
 
 if ($action === 'add_movie') {
     $title = trim($_POST['title'] ?? '');
+    $description_body = trim($_POST['description'] ?? '');
     $genre = trim($_POST['genre'] ?? '');
-    $release_year = trim($_POST['release_year'] ?? '');
     $poster_file = $_FILES['poster'] ?? null;
     $trailer_file = $_FILES['trailer'] ?? null;
 
@@ -113,9 +97,8 @@ if ($action === 'add_movie') {
         redirect_with_error($root_url . '/creator/add_movie.php', 'Title is required.');
     }
 
-    $release_year_error = validate_release_year($release_year, $current_year);
-    if ($release_year_error !== null) {
-        redirect_with_error($root_url . '/creator/add_movie.php', $release_year_error);
+    if ($description_body === '') {
+        redirect_with_error($root_url . '/creator/add_movie.php', 'Description is required.');
     }
 
     $category_id = get_or_create_category($pdo, $genre, $user_id);
@@ -155,7 +138,6 @@ if ($action === 'add_movie') {
     }
 
     $new_id = generate_uuid();
-    $description = build_description($release_year);
     $stmt = $pdo->prepare(
         'INSERT INTO dbProj_movies
             (id, title, description, image_url, media_url, category_id, creator_id, is_published, view_count, createdby, modifiedby)
@@ -165,7 +147,7 @@ if ($action === 'add_movie') {
     $stmt->execute([
         $new_id,
         $title,
-        $description,
+        $description_body,
         $image_url,
         $media_url,
         $category_id,

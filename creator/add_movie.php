@@ -10,7 +10,6 @@ require_once __DIR__ . '/../includes/auth.php';
 require_role(['Creator']);
 
 $root_url = '/DB-Programming-2';
-$current_year = (int) date('Y');
 $error_message = isset($_GET['error']) ? sanitize($_GET['error']) : '';
 $genre_stmt = $pdo->query(
     "SELECT name
@@ -41,6 +40,12 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
 
             <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="5" required></textarea>
+                <div class="inline-error" id="error-description"></div>
+            </div>
+
+            <div class="form-group">
                 <label for="genre">Genre</label>
                 <select id="genre" name="genre" required>
                     <?php if (!$genres): ?>
@@ -53,13 +58,6 @@ require_once __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                 </select>
                 <div class="inline-error" id="error-genre"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="release_year">Release Year</label>
-                <input type="number" id="release_year" name="release_year" min="1888" max="<?= $current_year ?>" required>
-                <div class="note">Enter a 4 digit year between 1888 and <?= $current_year ?>.</div>
-                <div class="inline-error" id="error-year"></div>
             </div>
 
             <div class="form-group">
@@ -94,33 +92,26 @@ require_once __DIR__ . '/../includes/header.php';
     form.addEventListener('submit', function (event) {
         const errors = {
             title: '',
+            description: '',
             genre: '',
-            year: '',
             poster: ''
         };
 
         const title = document.getElementById('title').value.trim();
+        const description = document.getElementById('description').value.trim();
         const genre = document.getElementById('genre').value.trim();
-        const yearValue = document.getElementById('release_year').value.trim();
         const posterFile = document.getElementById('poster').files;
 
         if (!title) {
             errors.title = 'Title is required.';
         }
 
-        if (!genre) {
-            errors.genre = 'Please select a genre.';
+        if (!description) {
+            errors.description = 'Description is required.';
         }
 
-        if (yearValue) {
-            const yearNumber = Number(yearValue);
-            if (!Number.isInteger(yearNumber) || yearValue.length !== 4) {
-                errors.year = 'Release year must be a 4 digit number.';
-            } else if (yearNumber < 1888 || yearNumber > <?= $current_year ?>) {
-                errors.year = 'Release year is out of range.';
-            }
-        } else {
-            errors.year = 'Release year is required.';
+        if (!genre) {
+            errors.genre = 'Please select a genre.';
         }
 
         if (posterFile.length === 0) {
@@ -128,11 +119,11 @@ require_once __DIR__ . '/../includes/header.php';
         }
 
         document.getElementById('error-title').textContent = errors.title;
+        document.getElementById('error-description').textContent = errors.description;
         document.getElementById('error-genre').textContent = errors.genre;
-        document.getElementById('error-year').textContent = errors.year;
         document.getElementById('error-poster').textContent = errors.poster;
 
-        if (errors.title || errors.genre || errors.year || errors.poster) {
+        if (errors.title || errors.description || errors.genre || errors.poster) {
             event.preventDefault();
         }
     });

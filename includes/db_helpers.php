@@ -256,6 +256,7 @@ function get_active_users_for_reports(PDO $pdo): array {
         "SELECT id, username, role
          FROM dbProj_users
          WHERE inactive = FALSE
+           AND role = 'Creator'
          ORDER BY username ASC"
     );
     return $stmt->fetchAll();

@@ -57,7 +57,7 @@ foreach ($activeUsers as $userRow) {
             <input type="date" name="popular_end" value="<?= htmlspecialchars($popularEnd) ?>">
         </label>
         <label>
-            Creator Report User
+            Content by User
             <select name="report_user_id">
                 <?php foreach ($activeUsers as $userRow): ?>
                     <option value="<?= htmlspecialchars($userRow['id']) ?>" <?= $reportUserId === $userRow['id'] ? 'selected' : '' ?>>

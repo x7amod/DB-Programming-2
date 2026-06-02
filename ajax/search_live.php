@@ -9,30 +9,38 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/db_helpers.php';
 
-$term = trim($_GET['q'] ?? '');
-$results = search_movies_live($pdo, $term);
+$filters = [
+    'title' => trim($_GET['title'] ?? ($_GET['q'] ?? '')),
+    'start_date' => trim($_GET['start_date'] ?? ''),
+    'end_date' => trim($_GET['end_date'] ?? ''),
+    'creator' => trim($_GET['creator'] ?? ''),
+    'category' => trim($_GET['category'] ?? ''),
+    'sort' => trim($_GET['sort'] ?? ''),
+];
 
-if (strlen($term) < 2) {
-    echo '<p class="comment-empty">Type at least 2 characters to see live matches.</p>';
-    exit;
-}
+$results = search_published_movies($pdo, $filters);
 
 if (count($results) === 0) {
-    echo '<p class="comment-empty">No live matches found.</p>';
+    echo '<div class="empty-state">';
+    echo '<h3>No movies found</h3>';
+    echo '<p>Try adjusting your filters or searching with broader terms.</p>';
+    echo '</div>';
     exit;
 }
+
+echo '<div class="movie-grid">';
 
 foreach ($results as $movie):
     $image = !empty($movie['image_url'])
         ? $movie['image_url']
         : '/DB-Programming-2/assets/images/default-movie.jpg';
-    $shortDescription = strlen($movie['description'] ?? '') > 140
-        ? substr($movie['description'], 0, 140) . '...'
+    $shortDescription = strlen($movie['description'] ?? '') > 120
+        ? substr($movie['description'], 0, 120) . '...'
         : ($movie['description'] ?? '');
 ?>
-    <article class="live-result-card">
+    <article class="movie-card">
         <img src="<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($movie['title']) ?> poster">
-        <div class="live-result-card-body">
+        <div class="movie-card-body">
             <h3><?= htmlspecialchars($movie['title']) ?></h3>
             <p class="movie-meta">
                 <?= htmlspecialchars($movie['category_name'] ?? 'Uncategorized') ?>
@@ -45,3 +53,5 @@ foreach ($results as $movie):
         </div>
     </article>
 <?php endforeach; ?>
+
+<?php echo '</div>'; ?>

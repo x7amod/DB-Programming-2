@@ -53,7 +53,7 @@ $image = !empty($movie['image_url'])
 		<div class="movie-stats">
 			<span><?= htmlspecialchars((string) $movie['view_count']) ?> views</span>
 			<span><?= htmlspecialchars((string) $commentCount) ?> comment(s)</span>
-			<span><?= htmlspecialchars((string) $averageRating) ?>/5 average</span>
+			<span><?= htmlspecialchars((string) $averageRating) ?>/5 Average</span>
 		</div>
 
 		<p class="movie-description"><?= nl2br(htmlspecialchars($movie['description'] ?? '')) ?></p>

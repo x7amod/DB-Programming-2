@@ -261,6 +261,88 @@ function get_active_users_for_reports(PDO $pdo): array {
     return $stmt->fetchAll();
 }
 
+function search_published_movies(PDO $pdo, array $filters = [], ?int $limit = null): array {
+    $title = trim((string) ($filters['title'] ?? ''));
+    $startDate = trim((string) ($filters['start_date'] ?? ''));
+    $endDate = trim((string) ($filters['end_date'] ?? ''));
+    $creator = trim((string) ($filters['creator'] ?? ''));
+    $category = trim((string) ($filters['category'] ?? ''));
+    $sort = trim((string) ($filters['sort'] ?? ''));
+
+    $sql = "
+        SELECT
+            m.id,
+            m.title,
+            m.description,
+            m.image_url,
+            m.createdon,
+            m.view_count,
+            c.name AS category_name,
+            u.username AS creator_name
+        FROM dbProj_movies m
+        LEFT JOIN dbProj_categories c ON m.category_id = c.id
+        LEFT JOIN dbProj_users u ON m.creator_id = u.id
+        WHERE m.is_published = TRUE
+          AND m.inactive = FALSE
+    ";
+
+    $params = [];
+
+    if ($title !== '') {
+        $sql .= " AND (
+            MATCH(m.title, m.description) AGAINST(:search_term IN NATURAL LANGUAGE MODE)
+            OR m.title LIKE :title_like
+            OR m.description LIKE :description_like
+        )";
+        $params[':search_term'] = $title;
+        $params[':title_like'] = '%' . $title . '%';
+        $params[':description_like'] = '%' . $title . '%';
+    }
+
+    if ($startDate !== '') {
+        $sql .= " AND DATE(m.createdon) >= :start_date";
+        $params[':start_date'] = $startDate;
+    }
+
+    if ($endDate !== '') {
+        $sql .= " AND DATE(m.createdon) <= :end_date";
+        $params[':end_date'] = $endDate;
+    }
+
+    if ($creator !== '') {
+        $sql .= " AND u.username LIKE :creator";
+        $params[':creator'] = '%' . $creator . '%';
+    }
+
+    if ($category !== '') {
+        $sql .= " AND c.name = :category";
+        $params[':category'] = $category;
+    }
+
+    if ($sort === 'popular') {
+        $sql .= " ORDER BY m.view_count DESC, m.createdon DESC";
+    } else {
+        $sql .= " ORDER BY m.createdon DESC";
+    }
+
+    if ($limit !== null) {
+        $sql .= " LIMIT :limit";
+    }
+
+    $stmt = $pdo->prepare($sql);
+
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value, PDO::PARAM_STR);
+    }
+
+    if ($limit !== null) {
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    }
+
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
 function search_movies_live(PDO $pdo, string $term, int $limit = 8): array {
     $term = trim($term);
     if ($term === '') {

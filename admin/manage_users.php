@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/db_helpers.php';
 
 require_role(['Admin']);
 
-$root_url = '/~u202302211/DB-Programming-2'; // added app base URL
+$root_url = app_base_url();
 
 // Handle POST actions (PRG pattern)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             set_flash('success', 'User status updated.');
         }
     }
-    redirect($root_url . '/admin/manage_users.php'); // changed to use $root_url
+    redirect($root_url . '/admin/manage_users.php');
 }
 
 // Filters from GET

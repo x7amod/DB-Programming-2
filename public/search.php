@@ -2,6 +2,8 @@
 // PURPOSE: Search page for movies.
 require_once __DIR__ . '/../includes/header.php';
 
+$root_url = app_base_url();
+
 $title = trim($_GET['title'] ?? '');
 $startDate = trim($_GET['start_date'] ?? '');
 $endDate = trim($_GET['end_date'] ?? '');
@@ -103,7 +105,7 @@ $categories = $catStmt->fetchAll();
 </section>
 
 <section class="search-section">
-    <form method="GET" action="/~u202302211/DB-Programming-2/public/search.php" class="advanced-search-form">
+    <form method="GET" action="<?= $root_url ?>/public/search.php" class="advanced-search-form">
         <input 
             type="text" 
             name="title" 
@@ -160,9 +162,7 @@ $categories = $catStmt->fetchAll();
         <div class="movie-grid">
             <?php foreach ($movies as $movie): ?>
                 <?php
-                    $image = !empty($movie['image_url'])
-                        ? '/~u202302211' . $movie['image_url']
-                        : '/~u202302211/DB-Programming-2/public/assets/images/default-movie.jpg';
+                    $image = movie_poster_url($movie['image_url'] ?? null);
 
                     $shortDescription = strlen($movie['description']) > 120
                         ? substr($movie['description'], 0, 120) . '...'
@@ -187,7 +187,7 @@ $categories = $catStmt->fetchAll();
                             Views: <?= htmlspecialchars($movie['view_count']) ?>
                         </p>
 
-                        <a class="btn-view" href="/~u202302211/DB-Programming-2/public/review.php?id=<?= urlencode($movie['id']) ?>">
+                        <a class="btn-view" href="<?= $root_url ?>/public/review.php?id=<?= urlencode($movie['id']) ?>">
                             View More
                         </a>
                     </div>

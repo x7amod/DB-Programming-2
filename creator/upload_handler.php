@@ -9,7 +9,7 @@ require_once __DIR__ . '/../includes/auth.php';
 
 require_role(['Creator']);
 
-$root_url = '/~u202302211/DB-Programming-2';
+$root_url = app_base_url();
 $current_user = current_user();
 $user_id = $current_user['id'];
 
@@ -121,7 +121,7 @@ if ($action === 'add_movie') {
         redirect_with_error($root_url . '/creator/add_movie.php', $poster_result['message']);
     }
 
-    $image_url = $root_url . '/uploads/posters/' . $poster_result['filename'];
+    $image_url = project_path() . '/uploads/posters/' . $poster_result['filename'];
     $media_url = null;
     if ($trailer_file && $trailer_file['error'] !== UPLOAD_ERR_NO_FILE) {
         $trailer_result = handle_upload(
@@ -134,7 +134,7 @@ if ($action === 'add_movie') {
         if (!$trailer_result['ok']) {
             redirect_with_error($root_url . '/creator/add_movie.php', $trailer_result['message']);
         }
-        $media_url = $root_url . '/uploads/media/' . $trailer_result['filename'];
+        $media_url = project_path() . '/uploads/media/' . $trailer_result['filename'];
     }
 
     $new_id = generate_uuid();

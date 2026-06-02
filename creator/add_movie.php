@@ -9,7 +9,7 @@ require_once __DIR__ . '/../includes/auth.php';
 
 require_role(['Creator']);
 
-$root_url = '/~u202302211/DB-Programming-2';
+$root_url = app_base_url();
 $error_message = isset($_GET['error']) ? sanitize($_GET['error']) : '';
 $genre_stmt = $pdo->query(
     "SELECT name

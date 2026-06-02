@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/db_helpers.php';
 
 require_role(['Admin']);
 
-$root_url = '/~u202302211/DB-Programming-2';
+$root_url = app_base_url();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';

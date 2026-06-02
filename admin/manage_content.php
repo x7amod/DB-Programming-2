@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/db_helpers.php';
 
 require_role(['Admin', 'Support']);
 
-$root_url = '/~u202302211/DB-Programming-2'; // added: app base URL
+$root_url = app_base_url();
 
 // Handle POST actions (PRG pattern)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         set_flash('success', 'Review deleted.');
     }
 
-    redirect($root_url . '/admin/manage_content.php'); // changed to use $root_url
+    redirect($root_url . '/admin/manage_content.php');
 }
 
 $reviews = get_all_reviews_with_details($pdo);
@@ -33,7 +33,7 @@ $reviews = get_all_reviews_with_details($pdo);
 <div class="admin-section">
     <div class="admin-section-header">
         <h1>Manage Reviews</h1>
-        <a href="<?= $root_url ?>/admin/index.php">&larr; Back to Dashboard</a> <!-- changed -->
+        <a href="<?= $root_url ?>/admin/index.php">&larr; Back to Dashboard</a>
     </div>
 
     <p><?= count($reviews) ?> review(s) total.</p>

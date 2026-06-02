@@ -21,7 +21,7 @@ function comment_json_response(array $payload, int $statusCode = 200): void {
 
 function comment_redirect_response(string $movieId, string $type, string $message): void {
     set_flash($type, $message);
-    redirect('/~u202302211/DB-Programming-2/review.php?id=' . urlencode($movieId));
+    redirect(app_base_url() . '/review.php?id=' . urlencode($movieId));
 }
 
 function comment_length(string $text): int {
@@ -88,7 +88,7 @@ try {
             ], 401);
         }
         set_flash('error', 'Your session is no longer valid. Please log in again.');
-        redirect('/~u202302211/DB-Programming-2/auth/login.php');
+        redirect(app_base_url() . '/auth/login.php');
     }
 
     $movieId = trim($_POST['movie_id'] ?? '');

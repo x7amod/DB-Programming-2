@@ -7,7 +7,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 
-$root_url = '/~u202302211/DB-Programming-2';
+$root_url = app_base_url();
 $user_id = trim($_GET['user_id'] ?? '');
 
 function extract_release_year(string $description): array {
@@ -71,7 +71,7 @@ require_once __DIR__ . '/../includes/header.php';
                         ?>
                         <div class="review-card">
                             <?php if (!empty($review['image_url'])): ?>
-                                <img src="/~u202302211<?= sanitize($review['image_url']) ?>" alt="Poster">
+                                <img src="<?= sanitize(movie_poster_url($review['image_url'])) ?>" alt="Poster">
                             <?php else: ?>
                                 <div class="poster-placeholder">No poster</div>
                             <?php endif; ?>

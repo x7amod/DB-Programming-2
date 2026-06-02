@@ -45,6 +45,7 @@ $stmt->execute();
 $movies = $stmt->fetchAll();
 ?>
 
+<?php $root_url = app_base_url(); ?>
 <section class="hero-section">
     <h1>Welcome to Movie Reviews</h1>
     <p>Discover the latest movies, reviews, ratings, and popular recommendations.</p>
@@ -68,9 +69,7 @@ $movies = $stmt->fetchAll();
             <div class="movie-grid">
                 <?php foreach ($movies as $movie): ?>
                     <?php
-                        $image = !empty($movie['image_url'])
-                            ? '/~u202302211' . $movie['image_url']
-                            : '/~u202302211/DB-Programming-2/assets/images/default-movie.jpg';
+                        $image = movie_poster_url($movie['image_url'] ?? null);
 
                         $shortDescription = strlen($movie['description']) > 120
                             ? substr($movie['description'], 0, 120) . '...'
@@ -95,7 +94,7 @@ $movies = $stmt->fetchAll();
                                 Views: <?= htmlspecialchars($movie['view_count']) ?>
                             </p>
 
-                            <a class="btn-view" href="/~u202302211/DB-Programming-2/review.php?id=<?= urlencode($movie['id']) ?>">
+                            <a class="btn-view" href="<?= $root_url ?>/review.php?id=<?= urlencode($movie['id']) ?>">
                                 View More
                             </a>
                         </div>
@@ -178,7 +177,7 @@ $movies = $stmt->fetchAll();
         try {
             setLoadingState();
 
-            const response = await fetch(`/~u202302211/DB-Programming-2/ajax/search_live.php?title=${encodeURIComponent(query)}`, {
+            const response = await fetch(`<?= $root_url ?>/ajax/search_live.php?title=${encodeURIComponent(query)}`, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 },

@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/db_helpers.php';
 
 require_role(['Admin', 'Support']);
 
-$root_url = '/~u202302211/DB-Programming-2'; // add app base URL
+$root_url = app_base_url();
 
 $review_id = $_GET['id'] ?? ($_POST['review_id'] ?? '');
 

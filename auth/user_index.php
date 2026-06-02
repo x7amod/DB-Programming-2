@@ -11,7 +11,7 @@ require_login();
 
 require_once __DIR__ . '/../includes/header.php';
 
-$root_url = '/~u202302211/DB-Programming-2';
+$root_url = app_base_url();
 $current_user = current_user();
 
 function selected_attr(string $value, string $current): string {
@@ -316,9 +316,7 @@ $categories = $cat_stmt->fetchAll();
         <div class="movie-grid">
             <?php foreach ($movies as $movie): ?>
                 <?php
-                    $image = !empty($movie['image_url'])
-                        ? '/~u202302211' . $movie['image_url']
-                        : '/~u202302211/DB-Programming-2/assets/images/default-movie.jpg';
+                    $image = movie_poster_url($movie['image_url'] ?? null);
                     [$release_year, $clean_description] = clean_year_from_description($movie['description'] ?? '');
                     $short_description = strlen($clean_description) > 130
                         ? substr($clean_description, 0, 130) . '...'

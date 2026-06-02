@@ -31,9 +31,7 @@ if (count($results) === 0) {
 echo '<div class="movie-grid">';
 
 foreach ($results as $movie):
-    $image = !empty($movie['image_url'])
-        ? '/~u202302211' . $movie['image_url']
-        : '/~u202302211/DB-Programming-2/assets/images/default-movie.jpg';
+    $image = movie_poster_url($movie['image_url'] ?? null);
     $shortDescription = strlen($movie['description'] ?? '') > 120
         ? substr($movie['description'], 0, 120) . '...'
         : ($movie['description'] ?? '');
@@ -49,7 +47,7 @@ foreach ($results as $movie):
             </p>
             <p><?= htmlspecialchars($shortDescription) ?></p>
             <p class="movie-views">Views: <?= htmlspecialchars((string) $movie['view_count']) ?></p>
-            <a class="btn-view" href="/~u202302211/DB-Programming-2/review.php?id=<?= urlencode($movie['id']) ?>">View More</a>
+            <a class="btn-view" href="<?= app_base_url() ?>/review.php?id=<?= urlencode($movie['id']) ?>">View More</a>
         </div>
     </article>
 <?php endforeach; ?>

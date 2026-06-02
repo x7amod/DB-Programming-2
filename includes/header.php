@@ -12,7 +12,7 @@ require_once __DIR__ . '/auth.php';
 $current_user = current_user();
 $flash        = get_flash();
 
-$base_url = '/~u202302211/DB-Programming-2';
+$base_url = app_base_url();
 ?>
 <!DOCTYPE html>
 <html lang="en">

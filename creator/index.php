@@ -74,31 +74,6 @@ $messages = [
 $msg_key = $_GET['msg'] ?? '';
 $current_msg = $messages[$msg_key] ?? null;
 ?>
-<style>
-    .creator-wrap { max-width: 1100px; margin: 0 auto; }
-    .creator-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
-    .creator-header h1 { margin: 0; color: #1a1a2e; }
-    .creator-subtitle { color: #6b7280; margin: 6px 0 0; }
-    .creator-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    .creator-btn { display: inline-block; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 600; }
-    .creator-btn-primary { background: #1a1a2e; color: #fff; border: 1px solid #1a1a2e; }
-    .creator-btn-secondary { background: #fff; color: #1a1a2e; border: 1px solid #1a1a2e; }
-    .creator-table-wrap { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.07); overflow: hidden; }
-    .creator-table { width: 100%; border-collapse: collapse; }
-    .creator-table th { background: #1a1a2e; color: #fff; text-align: left; padding: 12px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
-    .creator-table td { padding: 12px; border-bottom: 1px solid #edf2f7; vertical-align: middle; }
-    .creator-table tr:last-child td { border-bottom: none; }
-    .status-pill { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; }
-    .status-draft { background: #e5e7eb; color: #1f2937; }
-    .status-published { background: #dcfce7; color: #166534; }
-    .review-pill { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; }
-    .review-missing { background: #fef3c7; color: #92400e; }
-    .review-ready { background: #dbeafe; color: #1e3a8a; }
-    .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .row-actions form { margin: 0; }
-    .row-btn { padding: 6px 10px; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; color: #1f2937; cursor: pointer; font-size: 13px; text-decoration: none; }
-    .row-btn-danger { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
-</style>
 
 <section class="creator-wrap">
     <div class="creator-header">

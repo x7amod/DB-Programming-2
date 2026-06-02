@@ -36,17 +36,6 @@ $selected_movie_id = trim($_GET['movie_id'] ?? '');
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
-<style>
-    .creator-form-shell { max-width: 760px; margin: 0 auto; }
-    .creator-form-shell h1 { margin: 0 0 8px; color: #1a1a2e; }
-    .creator-form-shell p { margin: 0 0 20px; color: #4b5563; }
-    .creator-form-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
-    .inline-error { color: #dc3545; font-size: 13px; margin-top: 4px; }
-    .char-count { font-size: 12px; color: #6b7280; text-align: right; margin-top: 4px; }
-    .empty-note { background: #eef2ff; border: 1px solid #c7d2fe; color: #1e3a8a; border-radius: 8px; padding: 14px; }
-    .rating-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
-    .rating-row label { font-weight: 400; }
-</style>
 
 <section class="creator-form-shell">
     <h1>Add Review</h1>

@@ -163,7 +163,7 @@ $image = !empty($movie['image_url'])
 
 	function updateCount() {
 		counter.textContent = textarea.value.length;
-		counter.style.color = textarea.value.length > 2000 ? '#dc3545' : '';
+		counter.classList.toggle('is-limit-exceeded', textarea.value.length > 2000);
 	}
 
 	textarea.addEventListener('input', updateCount);

@@ -22,16 +22,6 @@ $genres = $genre_stmt->fetchAll(PDO::FETCH_COLUMN);
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
-<style>
-    .creator-form-shell { max-width: 760px; margin: 0 auto; }
-    .creator-form-shell h1 { margin: 0 0 8px; color: #1a1a2e; }
-    .creator-form-shell p { margin: 0 0 20px; color: #4b5563; }
-    .creator-form-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
-    .inline-error { color: #dc3545; font-size: 13px; margin-top: 4px; }
-    .note { font-size: 12px; color: #6b7280; margin-top: 4px; }
-    .status-row { display: flex; gap: 18px; flex-wrap: wrap; }
-    .status-row label { font-weight: 400; }
-</style>
 
 <section class="creator-form-shell">
     <h1>Add Movie</h1>

@@ -101,7 +101,7 @@ $movies = get_all_movies_for_admin($pdo, $filters);
                                 <a href="<?= $root_url ?>/review.php?id=<?= urlencode($movie['id']) ?>" class="btn-view">View</a>
                             <?php endif; ?>
                             <form method="POST" style="display:inline;"
-                                  onsubmit="return confirm('Change this movie\\'s publish status?');">
+                                  onsubmit="return confirm('Change the publish status for this movie?');">
                                 <input type="hidden" name="action" value="toggle_published">
                                 <input type="hidden" name="movie_id" value="<?= sanitize($movie['id']) ?>">
                                 <button type="submit" class="btn-edit">
@@ -109,7 +109,7 @@ $movies = get_all_movies_for_admin($pdo, $filters);
                                 </button>
                             </form>
                             <form method="POST" style="display:inline;"
-                                  onsubmit="return confirm('Change this movie\\'s active status?');">
+                                  onsubmit="return confirm('Change the active status for this movie?');">
                                 <input type="hidden" name="action" value="toggle_active">
                                 <input type="hidden" name="movie_id" value="<?= sanitize($movie['id']) ?>">
                                 <button type="submit" class="<?= $movie['inactive'] ? 'btn-activate' : 'btn-deactivate' ?>">

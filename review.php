@@ -138,9 +138,7 @@ $image = !empty($movie['image_url'])
 			<div class="comment-form-actions">
 				<button type="submit"><?= $myReview ? 'Update Review' : 'Submit Review' ?></button>
 				<span id="comment-status" class="comment-status" aria-live="polite"></span>
-				<?php if ($myReview): ?>
-					<button type="button" id="delete-review-btn" class="delete-review-btn">Delete my review</button>
-				<?php endif; ?>
+
 			</div>
 		</form>
 	<?php else: ?>
@@ -216,34 +214,7 @@ $image = !empty($movie['image_url'])
 		}
 	});
 
-	// Delete review handler
-	const deleteBtn = document.getElementById('delete-review-btn');
-	if (deleteBtn) {
-		deleteBtn.addEventListener('click', async function () {
-			if (!confirm('Delete your review? This action will hide your review from the site.')) return;
 
-			status.textContent = 'Deleting your review...';
-			status.className = 'comment-status comment-status-info';
-
-			try {
-				const resp = await fetch('/DB-Programming-2/ajax/delete_review.php', {
-					method: 'POST',
-					headers: { 'Accept': 'application/json' },
-					body: new URLSearchParams({ review_id: '<?= htmlspecialchars($myReview['id'] ?? '') ?>' })
-				});
-
-				const data = await resp.json();
-				if (!resp.ok || !data.success) {
-					throw new Error(data.message || 'Unable to delete review.');
-				}
-
-				window.location.reload();
-			} catch (err) {
-				status.textContent = err.message;
-				status.className = 'comment-status comment-status-error';
-			}
-		});
-	}
 }());
 </script>
 

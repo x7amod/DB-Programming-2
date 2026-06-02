@@ -48,9 +48,9 @@ $base_url = '/DB-Programming-2';
             <?php endif; ?>
 
             <?php if ($current_user['role'] === 'Creator'): ?>
-                <a href="<?= $base_url ?>/creator/index.php">Creator Dashboard</a>
-                <a href="<?= $base_url ?>/creator/add_movie.php">Add Movie</a>
-                <a href="<?= $base_url ?>/creator/add_review.php">Add Review</a>
+                <a class="nav-action" href="<?= $base_url ?>/creator/index.php">Creator Dashboard</a>
+                <a class="nav-action" href="<?= $base_url ?>/creator/add_movie.php">Add Movie</a>
+                <a class="nav-action" href="<?= $base_url ?>/creator/add_review.php">Add Review</a>
             <?php endif; ?>
 
             <?php if ($current_user['role'] === 'Viewer'): ?>

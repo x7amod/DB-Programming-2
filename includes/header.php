@@ -34,16 +34,17 @@ $base_url = '/DB-Programming-2';
         <a href="<?= $base_url ?>/search.php">Search</a>
 
         <?php if ($current_user): ?>
-                <a class="nav-action" href="<?= $base_url ?>/auth/user_index.php">Movie Explorer</a>
+                
 
             <?php if (in_array($current_user['role'], ['Admin', 'Support'], true)): ?>
                 <a class="nav-action" href="<?= $base_url ?>/admin/index.php">
                     <?= $current_user['role'] === 'Support' ? 'Support Panel' : 'Admin Panel' ?>
                 </a>
-                <a class="nav-action" href="<?= $base_url ?>/admin/manage_content.php">Review Queue</a>
+                <a class="nav-action" href="<?= $base_url ?>/admin/manage_content.php">Reviews</a>
             <?php endif; ?>
 
             <?php if ($current_user['role'] === 'Admin'): ?>
+                <a class="nav-action" href="<?= $base_url ?>/admin/manage_movies.php">Movies</a>
                 <a class="nav-action" href="<?= $base_url ?>/admin/manage_users.php">Users</a>
             <?php endif; ?>
 

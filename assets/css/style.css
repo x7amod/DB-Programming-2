@@ -122,7 +122,7 @@ nav {
     transform: translateY(-1px);
 }
 
-.nav-links a:not(.nav-action)::after {
+.nav-links a::after {
     content: "";
     position: absolute;
     left: 14px;
@@ -138,16 +138,6 @@ nav {
 
 .nav-links a:hover::after {
     transform: scaleX(1);
-}
-
-.nav-links .nav-action {
-    border: 1px solid rgba(255,255,255,.20);
-    background: rgba(255,255,255,.08);
-    color: #fff;
-}
-
-.nav-links .nav-action:hover {
-    background: rgba(212, 160, 23, 0.22);
 }
 
 .nav-user {
@@ -881,19 +871,22 @@ button[type=submit]:hover,
 
 .admin-nav {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 14px;
     margin-top: 22px;
     padding: 18px;
     border-radius: 26px;
-    background: linear-gradient(135deg, #111111, #2a2118);
-    box-shadow: 0 22px 50px rgba(17,17,17,.18);
+    background: rgba(255,253,248,.97);
+    border: 1px solid rgba(255,255,255,.92);
+    box-shadow: var(--shadow-md);
 }
 
 .admin-nav a {
     border-radius: 16px;
-    background: rgba(255,255,255,.08);
-    border: 1px solid rgba(255,255,255,.12);
+    border: 1px solid rgba(17,17,17,.08);
+    min-height: 64px;
+    padding-top: 18px;
+    padding-bottom: 18px;
 }
 
 .admin-section,
@@ -1028,6 +1021,22 @@ button[type=submit]:hover,
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+}
+
+.actions form {
+    margin: 0;
+    display: flex;
+}
+
+.actions .btn-view,
+.actions .btn-edit,
+.actions .btn-deactivate,
+.actions .btn-activate {
+    margin-top: 0;
+    min-height: 44px;
+    padding: 10px 18px;
+    border-radius: 14px;
+    font-size: .88rem;
 }
 
 .comment-excerpt {
@@ -1815,9 +1824,12 @@ button[type=submit]:hover,
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .admin-nav,
     .search-page-layout {
         grid-template-columns: 1fr;
+    }
+
+    .admin-nav {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
@@ -1902,6 +1914,10 @@ button[type=submit]:hover,
 
     .search-form-card .advanced-search-form button {
         grid-column: span 1;
+    }
+
+    .admin-nav {
+        grid-template-columns: 1fr;
     }
 
     .user-search-form .span-2 {

@@ -122,6 +122,33 @@ function get_all_reviews_with_details(PDO $pdo): array {
     return $stmt->fetchAll();
 }
 
+function get_all_movies_for_admin(PDO $pdo, array $filters = []): array {
+    $sql = 'SELECT m.id, m.title, m.is_published, m.inactive, m.createdon, m.view_count,
+                   c.name AS category_name,
+                   u.username AS creator_name
+            FROM dbProj_movies m
+            LEFT JOIN dbProj_categories c ON m.category_id = c.id
+            LEFT JOIN dbProj_users u ON m.creator_id = u.id
+            WHERE 1=1';
+    $params = [];
+
+    if ($filters['status'] !== '' && isset($filters['status'])) {
+        $sql .= ' AND m.inactive = :inactive';
+        $params[':inactive'] = (int) $filters['status'];
+    }
+
+    if ($filters['published'] !== '' && isset($filters['published'])) {
+        $sql .= ' AND m.is_published = :is_published';
+        $params[':is_published'] = (int) $filters['published'];
+    }
+
+    $sql .= ' ORDER BY m.createdon DESC';
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll();
+}
+
 function get_movie_by_id(PDO $pdo, string $id): ?array {
     $stmt = $pdo->prepare(
         'SELECT m.*, c.name AS category_name, u.username AS creator_name
@@ -402,6 +429,26 @@ function toggle_review_active(PDO $pdo, string $id, string $by_id): bool {
     $stmt = $pdo->prepare(
         'UPDATE dbProj_reviews
          SET inactive = NOT inactive, modifiedon = NOW(), modifiedby = :by_id
+         WHERE id = :id'
+    );
+    $stmt->execute([':by_id' => $by_id, ':id' => $id]);
+    return $stmt->rowCount() === 1;
+}
+
+function toggle_movie_active(PDO $pdo, string $id, string $by_id): bool {
+    $stmt = $pdo->prepare(
+        'UPDATE dbProj_movies
+         SET inactive = NOT inactive, modifiedon = NOW(), modifiedby = :by_id
+         WHERE id = :id'
+    );
+    $stmt->execute([':by_id' => $by_id, ':id' => $id]);
+    return $stmt->rowCount() === 1;
+}
+
+function toggle_movie_published(PDO $pdo, string $id, string $by_id): bool {
+    $stmt = $pdo->prepare(
+        'UPDATE dbProj_movies
+         SET is_published = NOT is_published, modifiedon = NOW(), modifiedby = :by_id
          WHERE id = :id'
     );
     $stmt->execute([':by_id' => $by_id, ':id' => $id]);

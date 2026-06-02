@@ -75,12 +75,36 @@ function update_user(PDO $pdo, string $id, array $data, string $by_id): bool {
 }
 
 function toggle_user_active(PDO $pdo, string $id, string $by_id): bool {
+    $current = $pdo->prepare('SELECT username, inactive FROM dbProj_users WHERE id = ? LIMIT 1');
+    $current->execute([$id]);
+    $user = $current->fetch();
+
+    if (!$user) {
+        return false;
+    }
+
     $stmt = $pdo->prepare(
         'UPDATE dbProj_users
          SET inactive = NOT inactive, modifiedon = NOW(), modifiedby = :by_id
          WHERE id = :id'
     );
     $stmt->execute([':by_id' => $by_id, ':id' => $id]);
+
+    if ((int) $user['inactive'] === 0) {
+        $log = $pdo->prepare(
+            'INSERT INTO dbProj_status_log
+                (id, content_id, content_type, message, createdon, createdby)
+             VALUES
+                (UUID(), :content_id, :content_type, :message, NOW(), :createdby)'
+        );
+        $log->execute([
+            ':content_id'   => $id,
+            ':content_type' => 'USER',
+            ':message'      => 'System Message: The user "' . $user['username'] . '" has been deactivated by an administrator.',
+            ':createdby'    => $by_id,
+        ]);
+    }
+
     return $stmt->rowCount() === 1;
 }
 
